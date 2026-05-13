@@ -1,0 +1,3005 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sammy Kura — Fleet & Billing System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* ============================================================
+   CSS VARIABLES
+   ============================================================ */
+:root {
+  --orange:     #F97316;
+  --orange-dk:  #EA580C;
+  --orange-lt:  #FFF7ED;
+  --orange-light:#FED7AA;
+  --navy:       #0F172A;
+  --navy-mid:   #1E293B;
+  --navy-light: #334155;
+  --slate:      #1e293b;
+  --muted:      #64748b;
+  --border:     #E2E8F0;
+  --bg:         #F1F5F9;
+  --card:       #FFFFFF;
+  --text:       #1E293B;
+  --text2:      #475569;
+  --text-light: #64748B;
+  --success:    #22C55E;
+  --danger:     #EF4444;
+  --warning:    #F59E0B;
+  --info:       #3B82F6;
+  --sidebar-bg: #0F172A;
+  --sidebar-tx: #94a3b8;
+  --sidebar-ac: #F97316;
+  --inp-bg:     #f8fafc;
+  --inp-border: #cbd5e1;
+  --radius:     14px;
+  --radius-sm:  10px;
+  --shadow:     0 4px 24px rgba(15,23,42,0.08);
+  --shadow-lg:  0 8px 40px rgba(15,23,42,0.14);
+  --transition: .22s cubic-bezier(.4,0,.2,1);
+  --sidebar-w:  260px;
+  --header-h:   64px;
+}
+[data-theme="dark"] {
+  --bg:         #0a0f1e;
+  --card:       #131c2e;
+  --text:       #e2e8f0;
+  --text2:      #94a3b8;
+  --text-light: #64748b;
+  --border:     #1e2d44;
+  --inp-bg:     #0d1828;
+  --inp-border: #1e2d44;
+  --sidebar-bg: #080d1a;
+  --navy-mid:   #1e2d44;
+  --orange-lt:  rgba(249,115,22,.12);
+  --shadow:     0 4px 24px rgba(0,0,0,.3);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,.4);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Poppins',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.6;
+  transition:background var(--transition),color var(--transition);
+  overflow-x:hidden;
+  display:flex;
+  min-height:100vh;
+}
+button,input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar{
+  width:var(--sidebar-w);
+  background:var(--sidebar-bg);
+  position:fixed;left:0;top:0;bottom:0;
+  display:flex;flex-direction:column;
+  z-index:200;
+  transition:transform var(--transition);
+  box-shadow:4px 0 30px rgba(0,0,0,0.2);
+  overflow:hidden;
+}
+.sidebar-logo{
+  padding:24px 20px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.logo-icon{
+  width:48px;height:40px;background:rgba(249,115,22,0.15);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-icon svg{width:36px;height:28px}
+.logo-main{display:block;font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px}
+.logo-sub{display:block;font-size:10px;color:var(--orange);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.nav-section-label{
+  font-size:9px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--sidebar-tx);
+  padding:10px 10px 4px;margin-top:6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:var(--radius-sm);
+  color:rgba(255,255,255,.6);text-decoration:none;
+  border:none;background:none;width:100%;
+  font-size:13.5px;font-weight:500;cursor:pointer;
+  transition:all var(--transition);
+}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{
+  background:linear-gradient(135deg,var(--orange),var(--orange-dk));
+  color:#fff;box-shadow:0 4px 16px rgba(249,115,22,.4);
+}
+.nav-item .nav-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.nav-item .badge{
+  margin-left:auto;background:var(--orange);color:#fff;
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;
+}
+.sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.sidebar-user{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.user-avatar{
+  width:38px;height:38px;
+  background:linear-gradient(135deg,var(--orange),var(--orange-dk));
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;color:#fff;flex-shrink:0;
+}
+.user-name{font-size:13px;font-weight:700;color:#fff}
+.user-role{font-size:11px;color:rgba(255,255,255,.4)}
+.theme-btn{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.06);border:none;
+  color:var(--sidebar-tx);width:100%;padding:10px 14px;
+  border-radius:8px;cursor:pointer;font-size:12px;
+  transition:all var(--transition);
+}
+.theme-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* Overlay behind sidebar on mobile */
+.sidebar-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:190;
+  backdrop-filter:blur(2px);
+}
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.main-content{
+  margin-left:var(--sidebar-w);
+  flex:1;min-height:100vh;
+  display:flex;flex-direction:column;
+  min-width:0;
+}
+
+/* ============================================================
+   TOP HEADER
+   ============================================================ */
+.top-header{
+  height:var(--header-h);background:var(--card);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;
+  gap:12px;position:sticky;top:0;z-index:100;
+  box-shadow:var(--shadow);
+  transition:background var(--transition);
+  flex-wrap:nowrap;
+  min-width:0;
+}
+.header-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.menu-toggle{
+  display:none;background:none;border:none;
+  color:var(--text);cursor:pointer;font-size:20px;
+  padding:6px 8px;border-radius:8px;
+  transition:background var(--transition);
+  flex-shrink:0;
+}
+.menu-toggle:hover{background:var(--bg)}
+.page-title{font-size:16px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-title span{color:var(--orange)}
+.page-date{font-size:10px;color:var(--text-light);font-weight:500;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:8px 14px;
+}
+.search-bar input{
+  border:none;background:transparent;outline:none;
+  font-size:13px;color:var(--text);width:170px;
+}
+.notif-btn{
+  position:relative;font-size:18px;cursor:pointer;
+  width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  border-radius:10px;background:var(--bg);border:1.5px solid var(--border);
+  transition:all var(--transition);flex-shrink:0;
+}
+.notif-btn:hover{background:#FFF7ED;border-color:var(--orange-light)}
+.notif-badge{
+  position:absolute;top:5px;right:5px;
+  background:var(--danger);color:#fff;font-size:9px;
+  font-weight:700;width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.notif-dropdown{
+  display:none;position:absolute;top:calc(100% + 10px);right:12px;
+  width:300px;max-width:calc(100vw - 24px);
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);border:1px solid var(--border);z-index:500;overflow:hidden;
+}
+.notif-dropdown.show{display:block}
+.notif-header{padding:14px 18px;font-weight:700;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
+.notif-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px;font-size:13px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background var(--transition);
+}
+.notif-item:hover{background:var(--bg)}
+.notif-item.urgent{border-left:3px solid var(--danger)}
+.notif-item.warning{border-left:3px solid var(--warning)}
+.notif-item.info{border-left:3px solid var(--info)}
+
+/* ============================================================
+   PAGE SECTIONS
+   ============================================================ */
+.section-page{display:none}
+.section-page.active{display:block}
+
+/* ============================================================
+   STATS STRIP — DASHBOARD (6 cols → 3 → 2)
+   ============================================================ */
+.stats-strip{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:14px;
+  padding:20px 20px;
+}
+.stat-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  transition:transform var(--transition),box-shadow var(--transition);
+  min-width:0;
+}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.stat-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.stat-value{font-size:22px;font-weight:800;color:var(--text);line-height:1}
+.stat-label{font-size:11px;color:var(--text-light);font-weight:600;margin-top:3px}
+
+/* ============================================================
+   ALERTS BANNER
+   ============================================================ */
+.alerts-banner{
+  margin:0 20px 16px;background:var(--card);
+  border-radius:var(--radius);border:1px solid var(--border);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.alert-title{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0}
+.alerts-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.alerts-scroll::-webkit-scrollbar{display:none}
+.alert-tag{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.alert-tag.red{background:#FEF2F2;color:var(--danger);border:1px solid #FECACA}
+.alert-tag.yellow{background:#FEFCE8;color:#B45309;border:1px solid #FDE68A}
+.alert-tag.blue{background:#EFF6FF;color:var(--info);border:1px solid #BFDBFE}
+.alert-tag.green{background:#F0FDF4;color:var(--success);border:1px solid #BBF7D0}
+
+/* ============================================================
+   FLEET SECTION
+   ============================================================ */
+.fleet-section{padding:20px}
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;gap:12px;flex-wrap:wrap;
+}
+.section-header h2{font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fleet-count{
+  font-size:12px;font-weight:600;color:var(--orange);
+  background:var(--orange-lt);padding:3px 12px;border-radius:20px;border:1px solid var(--orange-light);
+}
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{
+  padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--card);font-size:12px;font-weight:600;
+  color:var(--text-light);cursor:pointer;transition:all var(--transition);
+  white-space:nowrap;
+}
+.filter-btn:hover{border-color:var(--orange);color:var(--orange)}
+.filter-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.fleet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+
+/* ============================================================
+   LORRY CARDS
+   ============================================================ */
+.lorry-card{
+  background:var(--card);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);border:1.5px solid var(--border);
+  cursor:pointer;transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s,border-color .25s;
+  position:relative;
+}
+.lorry-card:hover{transform:translateY(-5px) scale(1.01);box-shadow:0 16px 48px rgba(15,23,42,.14);border-color:var(--orange)}
+.lorry-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.lorry-card.status-active::before{background:var(--success)}
+.lorry-card.status-service::before{background:var(--orange)}
+.lorry-card.status-alert::before{background:var(--danger)}
+.lorry-card.status-warning::before{background:var(--warning)}
+.card-visual{
+  background:linear-gradient(135deg,#0F172A 0%,#1E293B 100%);
+  height:120px;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.card-visual::after{
+  content:'';position:absolute;bottom:-20px;left:-20px;right:-20px;height:60px;
+  background:radial-gradient(ellipse at 50% 100%,rgba(249,115,22,.3) 0%,transparent 70%);
+}
+.truck-svg-wrap{position:relative;z-index:2;filter:drop-shadow(0 8px 24px rgba(249,115,22,.5));transition:transform .3s}
+.lorry-card:hover .truck-svg-wrap{transform:scale(1.08) translateY(-4px)}
+.lorry-reg-overlay{
+  position:absolute;bottom:8px;right:10px;
+  background:rgba(249,115,22,.95);color:#fff;
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.5px;z-index:3;
+}
+.card-body{padding:14px 16px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
+.lorry-name{font-size:15px;font-weight:800;color:var(--text)}
+.lorry-number{font-size:11px;color:var(--text-light);font-weight:600;margin-top:2px}
+.status-badge{
+  padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;
+}
+.badge-active{background:#F0FDF4;color:var(--success);border:1px solid #BBF7D0}
+.badge-service{background:#FFF7ED;color:var(--orange);border:1px solid var(--orange-light)}
+.badge-alert{background:#FEF2F2;color:var(--danger);border:1px solid #FECACA}
+.badge-warning{background:#FEFCE8;color:#B45309;border:1px solid #FDE68A}
+.badge-pending{background:#EFF6FF;color:var(--info);border:1px solid #BFDBFE}
+.driver-row{
+  display:flex;align-items:center;gap:9px;margin-bottom:12px;
+  padding:8px 10px;background:var(--bg);border-radius:8px;
+}
+.driver-avatar{
+  width:30px;height:30px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:#fff;font-weight:700;flex-shrink:0;
+}
+.driver-name{font-size:13px;font-weight:700;color:var(--text)}
+.driver-label{font-size:10px;color:var(--text-light)}
+.card-details{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item{display:flex;flex-direction:column;gap:2px}
+.detail-label{font-size:10px;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.detail-value{font-size:12px;font-weight:700;color:var(--text)}
+.detail-value.red{color:var(--danger)}
+.detail-value.yellow{color:#B45309}
+.detail-value.green{color:var(--success)}
+.card-footer{
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.fuel-bar-wrap{flex:1;min-width:0}
+.fuel-label{display:flex;justify-content:space-between;font-size:10px;font-weight:600;color:var(--text-light);margin-bottom:5px}
+.fuel-bar{height:6px;background:var(--bg);border-radius:10px;overflow:hidden}
+.fuel-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--orange),var(--orange-dk));transition:width .8s ease}
+.view-btn{
+  background:var(--navy);color:#fff;border:none;padding:8px 14px;
+  border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:all var(--transition);white-space:nowrap;flex-shrink:0;
+}
+.view-btn:hover{background:var(--orange)}
+
+/* ============================================================
+   OVERLAY & DETAIL PANEL
+   ============================================================ */
+.overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.5);
+  backdrop-filter:blur(4px);z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.overlay.show{opacity:1;pointer-events:all}
+.detail-panel{
+  position:fixed;top:0;right:0;bottom:0;width:480px;
+  background:var(--card);z-index:400;overflow-y:auto;
+  transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+  box-shadow:-8px 0 40px rgba(15,23,42,.15);
+}
+.detail-panel.open{transform:translateX(0)}
+.panel-header{
+  background:linear-gradient(135deg,#0F172A 0%,#1E293B 60%,#0F172A 100%);
+  padding:24px 20px 18px;color:#fff;text-align:center;position:relative;
+}
+.panel-close{
+  position:absolute;top:14px;right:14px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;
+  font-size:16px;display:flex;align-items:center;justify-content:center;
+  transition:background var(--transition);
+}
+.panel-close:hover{background:var(--orange);border-color:var(--orange)}
+.panel-truck-visual{margin-bottom:12px;display:flex;align-items:center;justify-content:center}
+#panelTitle{font-size:18px;font-weight:800;color:#fff}
+#panelSub{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+.panel-tabs{
+  display:flex;border-bottom:2px solid var(--border);
+  background:var(--card);position:sticky;top:0;z-index:10;
+  overflow-x:auto;
+}
+.panel-tabs::-webkit-scrollbar{display:none}
+.ptab{
+  flex:1;padding:13px 8px;background:none;border:none;
+  font-size:12px;font-weight:600;color:var(--text-light);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:all var(--transition);
+  white-space:nowrap;min-width:70px;
+}
+.ptab:hover{color:var(--orange)}
+.ptab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.panel-body{padding:20px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.info-box{background:var(--bg);border-radius:var(--radius-sm);padding:12px;border:1px solid var(--border)}
+.info-box-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-light);margin-bottom:5px}
+.info-box-value{font-size:14px;font-weight:700;color:var(--text)}
+.info-box-value.red{color:var(--danger)}
+.info-box-value.yellow{color:#B45309}
+.info-box-value.green{color:var(--success)}
+.section-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.doc-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  margin-bottom:8px;background:var(--card);transition:all var(--transition);
+  gap:10px;
+}
+.doc-item:hover{border-color:var(--orange);background:var(--orange-lt)}
+.doc-info{display:flex;align-items:center;gap:10px;min-width:0}
+.doc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-name{font-size:13px;font-weight:700;color:var(--text)}
+.doc-expiry{font-size:11px;color:var(--text-light);margin-top:2px}
+.doc-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.doc-status.valid{background:#F0FDF4;color:var(--success)}
+.doc-status.warning{background:#FEFCE8;color:#B45309}
+.doc-status.expired{background:#FEF2F2;color:var(--danger)}
+.fin-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.fin-bar-label{width:70px;font-size:12px;font-weight:600;color:var(--text-light);flex-shrink:0}
+.fin-bar-outer{flex:1;height:10px;background:var(--bg);border-radius:10px;overflow:hidden}
+.fin-bar-fill{height:100%;border-radius:10px}
+.fin-bar-val{width:56px;text-align:right;font-size:12px;font-weight:700;color:var(--text)}
+
+/* ============================================================
+   BILLING CONTENT
+   ============================================================ */
+.billing-content{padding:20px}
+
+/* Stats strip small (4 cols → 2) */
+.stats-strip-sm{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+.stat-card-sm{
+  background:var(--card);border-radius:var(--radius);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  min-width:0;
+}
+.stat-card-sm.orange{border-top:3px solid var(--orange)}
+.stat-card-sm.green{border-top:3px solid var(--success)}
+.stat-card-sm.red{border-top:3px solid var(--danger)}
+.stat-card-sm.blue{border-top:3px solid var(--info)}
+.stat-icon-sm{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.stat-card-sm.orange .stat-icon-sm{background:var(--orange-lt);color:var(--orange)}
+.stat-card-sm.green .stat-icon-sm{background:#F0FDF4;color:var(--success)}
+.stat-card-sm.red .stat-icon-sm{background:#FEF2F2;color:var(--danger)}
+.stat-card-sm.blue .stat-icon-sm{background:#EFF6FF;color:var(--info)}
+.stat-val{font-size:20px;font-weight:800;color:var(--text);line-height:1}
+.stat-lbl{font-size:11px;color:var(--text-light);font-weight:600;margin-top:2px}
+
+/* Billing tab bar */
+.tab-bar{
+  display:flex;gap:4px;background:var(--card);padding:6px;
+  border-radius:var(--radius);border:1px solid var(--border);
+  margin-bottom:20px;box-shadow:var(--shadow);
+  overflow-x:auto;
+}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 12px;border-radius:10px;border:none;background:none;
+  font-size:12px;font-weight:600;color:var(--text-light);cursor:pointer;
+  transition:all var(--transition);white-space:nowrap;min-width:120px;
+}
+.tab-btn:hover{background:var(--bg);color:var(--text)}
+.tab-btn.active{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(249,115,22,.4)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* Card */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  gap:10px;flex-wrap:wrap;
+}
+.card-header h3{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:var(--text)}
+.ch-icon{
+  width:30px;height:30px;background:var(--orange-lt);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;color:var(--orange);font-size:13px;
+  flex-shrink:0;
+}
+.card-body-pad{padding:20px}
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--card);color:var(--text);
+  transition:all var(--transition);white-space:nowrap;
+}
+.tb-btn:hover{border-color:var(--orange);color:var(--orange)}
+.tb-btn.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
+.tb-btn.primary:hover{background:var(--orange-dk)}
+
+/* ============================================================
+   FORM GRIDS — Responsive
+   ============================================================ */
+.form-grid{display:grid;gap:14px}
+.form-grid.col4{grid-template-columns:repeat(4,1fr)}
+.form-grid.col3{grid-template-columns:repeat(3,1fr)}
+.form-grid.col2{grid-template-columns:repeat(2,1fr)}
+.form-group{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;font-weight:600;color:var(--text2)}
+label.required::after{content:" *";color:var(--danger)}
+.inp{
+  padding:9px 12px;border:1.5px solid var(--inp-border);border-radius:8px;
+  background:var(--inp-bg);color:var(--text);font-size:13px;
+  transition:border-color var(--transition),box-shadow var(--transition);
+  outline:none;width:100%;
+}
+.inp:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+.inp-readonly{background:var(--bg);cursor:not-allowed}
+.inp-icon{position:relative}
+.inp-icon .icon{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:12px;pointer-events:none;
+}
+.inp-icon .inp{padding-left:32px}
+.sec-divider{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);padding:12px 0 6px;border-bottom:1px solid var(--border);margin:8px 0 12px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;
+}
+textarea.inp{resize:vertical;min-height:60px}
+
+/* ============================================================
+   ITEMS TABLE — Desktop
+   ============================================================ */
+.items-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;-webkit-overflow-scrolling:touch}
+.items-table{width:100%;border-collapse:collapse;font-size:12px;min-width:720px}
+.items-table th{
+  background:var(--navy-mid);color:#fff;padding:9px 8px;text-align:left;
+  font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap;
+}
+[data-theme="dark"] .items-table th{background:#1a2640}
+.items-table td{padding:7px 7px;border-bottom:1px solid var(--border);vertical-align:middle}
+.items-table tr:last-child td{border-bottom:none}
+.items-table tr:hover td{background:var(--bg)}
+.items-table .inp{padding:6px 8px;font-size:11px}
+.td-num{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text)}
+.gst-badge{
+  background:var(--orange-lt);color:var(--orange);
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;
+}
+.delete-row-btn{
+  background:none;border:none;color:var(--danger);cursor:pointer;
+  padding:5px 7px;border-radius:6px;transition:background var(--transition);
+}
+.delete-row-btn:hover{background:#FEF2F2}
+.add-row-btn{
+  display:flex;align-items:center;gap:7px;
+  background:none;border:1.5px dashed var(--inp-border);
+  color:var(--muted);padding:10px 18px;border-radius:8px;
+  font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;
+  transition:all var(--transition);margin-bottom:16px;
+}
+.add-row-btn:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-lt)}
+
+/* ============================================================
+   MOBILE PRODUCT CARD ROWS
+   ============================================================ */
+.product-card-row{
+  display:none;
+  background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  padding:14px;margin-bottom:10px;position:relative;
+  box-shadow:0 2px 8px rgba(15,23,42,.06);
+}
+.product-card-row .pcr-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+}
+.pcr-num{font-size:11px;font-weight:800;background:var(--orange-lt);color:var(--orange);padding:2px 9px;border-radius:20px;border:1px solid var(--orange-light)}
+.pcr-del{background:none;border:none;color:var(--danger);cursor:pointer;padding:5px 8px;border-radius:7px;font-size:13px;transition:background var(--transition)}
+.pcr-del:hover{background:#FEF2F2}
+.pcr-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcr-field{display:flex;flex-direction:column;gap:4px}
+.pcr-field label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.pcr-totals{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
+}
+.pcr-total-item{text-align:center;background:var(--bg);padding:8px 6px;border-radius:8px}
+.pcr-total-item .lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.pcr-total-item .val{font-size:12px;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.pcr-total-item.grand .val{color:var(--orange)}
+
+/* ============================================================
+   SELLER GST BANNER
+   ============================================================ */
+.seller-gst-banner{
+  background:linear-gradient(135deg,#0F172A,#1E293B);
+  border-radius:12px;padding:14px 18px;margin-bottom:14px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  border:1px solid var(--navy-light);
+}
+.seller-gst-banner .sgb-label{
+  font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;
+}
+.seller-gst-banner .sgb-select{
+  background:#0d1828;border:1.5px solid #334155;color:#f1f5f9;
+  padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;
+  outline:none;cursor:pointer;flex:1;min-width:180px;
+  font-family:'JetBrains Mono',monospace;
+}
+.seller-gst-banner .sgb-select:focus{border-color:var(--orange)}
+[data-theme="light"] .seller-gst-banner .sgb-select{background:#1E293B;}
+.seller-gst-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1}
+.sgb-chip{
+  background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);
+  color:var(--orange);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  white-space:nowrap;
+}
+.sgb-company{font-size:13px;font-weight:800;color:#fff}
+.sgb-state{font-size:11px;color:#94a3b8;margin-top:2px}
+
+/* GST Co selector in table */
+.gst-co-sel{font-size:11px;padding:5px 7px;min-width:140px;max-width:180px}
+.gst-co-tag{
+  display:inline-block;background:var(--orange-lt);color:var(--orange);
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;
+  border:1px solid var(--orange-light);white-space:nowrap;
+}
+
+/* GST Company card */
+.gco-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;align-items:flex-start;gap:12px;
+  box-shadow:var(--shadow);transition:all var(--transition);
+}
+.gco-card:hover{border-color:var(--orange);transform:translateY(-2px)}
+.gco-icon{
+  width:44px;height:44px;background:linear-gradient(135deg,#0F172A,#1E293B);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;border:1px solid #334155;
+}
+.gco-info{flex:1;min-width:0}
+.gco-name{font-size:14px;font-weight:800;color:var(--text)}
+.gco-gst{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);margin-top:3px;word-break:break-all}
+.gco-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.gco-state-badge{display:inline-block;background:var(--bg);border:1px solid var(--border);color:var(--text2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:5px}
+
+/* Product master card */
+.pm-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;align-items:center;gap:12px;
+  transition:all var(--transition);box-shadow:var(--shadow);
+}
+.pm-card:hover{border-color:var(--orange);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.pm-icon{
+  width:44px;height:44px;border-radius:12px;background:var(--orange-lt);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+  border:1px solid var(--orange-light);
+}
+.pm-info{flex:1;min-width:0}
+.pm-name{font-size:14px;font-weight:700;color:var(--text)}
+.pm-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.pm-rate{font-size:15px;font-weight:800;color:var(--orange);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.pm-gst-tag{display:inline-block;background:#FEF2F2;color:var(--danger);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid #FECACA;margin-left:6px}
+.pm-actions{display:flex;gap:6px;flex-shrink:0}
+.pm-edit-btn{background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:6px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all var(--transition)}
+.pm-edit-btn:hover{border-color:var(--orange);color:var(--orange)}
+.pm-add-form{background:var(--card);border:1.5px dashed var(--inp-border);border-radius:12px;padding:18px;margin-top:16px}
+.pm-add-form h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.inp-auto-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#F0FDF4;color:var(--success);border:1px solid #BBF7D0;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;
+}
+.pm-grid{display:grid;gap:12px;grid-template-columns:1fr}
+
+/* ============================================================
+   TOTALS SECTION
+   ============================================================ */
+.totals-section{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:8px}
+.notes-area{display:flex;flex-direction:column;gap:6px}
+.notes-area textarea{flex:1;resize:none;min-height:120px}
+.totals-box{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
+.total-row .lbl{color:var(--text2);font-weight:500}
+.total-row .val{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text)}
+.gst-row .val{color:var(--muted)}
+.total-row.grand{border-top:2px solid var(--border);padding-top:10px;margin-top:4px;font-size:14px}
+.total-row.grand .lbl{font-weight:800;color:var(--text)}
+.total-row.grand .val{color:var(--orange);font-size:17px}
+.paid-group{margin-top:10px}
+.paid-group label{margin-bottom:5px;display:block}
+.total-row.balance .val{font-weight:800}
+
+/* ============================================================
+   ACTION BAR
+   ============================================================ */
+.action-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:14px 20px;border-top:1px solid var(--border);background:var(--bg);
+}
+.btn{
+  display:flex;align-items:center;gap:7px;
+  padding:9px 16px;border-radius:9px;border:none;
+  font-size:13px;font-weight:600;cursor:pointer;
+  transition:all var(--transition);white-space:nowrap;
+}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange-dk)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#16a34a}
+.btn-info{background:var(--info);color:#fff}
+.btn-info:hover{background:#2563eb}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-warning:hover{background:#d97706}
+.btn-secondary{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
+.btn-secondary:hover{border-color:var(--orange);color:var(--orange)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+
+/* ============================================================
+   FILTER BAR
+   ============================================================ */
+.filter-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg);
+}
+.spacer{flex:1}
+
+/* ============================================================
+   INVOICE LIST TABLE
+   ============================================================ */
+.list-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.list-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
+.list-table th{
+  padding:11px 12px;border-bottom:2px solid var(--border);
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);background:var(--bg);white-space:nowrap;
+}
+.list-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.list-table tr:last-child td{border-bottom:none}
+.list-table tr:hover td{background:var(--bg)}
+.inv-num{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--orange);cursor:pointer;}
+.inv-num:hover{text-decoration:underline}
+.money-cell{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:700}
+.status-Paid{background:#F0FDF4;color:var(--success);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.status-Unpaid{background:#FEF2F2;color:var(--danger);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.status-Partial{background:#FEFCE8;color:#B45309;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.status-Draft{background:var(--bg);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--border)}
+.status-Cancelled{background:#F1F5F9;color:var(--muted);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.action-icons{display:flex;align-items:center;gap:4px;justify-content:center}
+.icon-btn{
+  background:none;border:none;cursor:pointer;
+  padding:6px 7px;border-radius:7px;font-size:12px;
+  color:var(--muted);transition:all var(--transition);
+}
+.icon-btn:hover{background:var(--bg);color:var(--orange)}
+.icon-btn.del:hover{background:#FEF2F2;color:var(--danger)}
+.pagination{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;
+}
+.page-info{font-size:12px;color:var(--muted);font-weight:600}
+.page-btns{display:flex;gap:4px}
+.page-btn{
+  width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--card);font-size:12px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all var(--transition);
+}
+.page-btn:hover{border-color:var(--orange);color:var(--orange)}
+.page-btn.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+
+/* ============================================================
+   AUTOCOMPLETE
+   ============================================================ */
+.autocomplete-wrap{position:relative}
+.autocomplete-list{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--card);border:1.5px solid var(--inp-border);
+  border-radius:10px;box-shadow:var(--shadow-lg);z-index:100;
+  max-height:200px;overflow-y:auto;display:none;
+}
+.autocomplete-list.show{display:block}
+.autocomplete-item{
+  padding:10px 14px;font-size:13px;cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background var(--transition);
+}
+.autocomplete-item:last-child{border-bottom:none}
+.autocomplete-item:hover{background:var(--orange-lt)}
+
+/* ============================================================
+   EMPTY / LOADING STATES
+   ============================================================ */
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.es-icon{font-size:44px;margin-bottom:12px}
+.empty-state h4{font-size:15px;color:var(--text);margin-bottom:6px}
+.empty-state p{font-size:13px}
+.loading-row td{text-align:center;padding:40px;color:var(--muted)}
+.spinner{
+  display:inline-block;width:18px;height:18px;
+  border:2px solid var(--border);border-top-color:var(--orange);
+  border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 40px)}
+.toast{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;border-radius:10px;
+  font-size:13px;font-weight:600;color:#fff;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);
+  animation:slideIn .3s ease;
+}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+.toast-info{background:var(--info)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  z-index:1000;align-items:center;justify-content:center;
+  padding:16px;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);padding:0;width:420px;max-width:100%;overflow:hidden;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.modal-header h4{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:6px}
+.modal-close:hover{background:var(--bg);color:var(--text)}
+.modal-body{padding:18px 20px;color:var(--text2);font-size:14px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border)}
+
+/* Placeholder sections */
+.placeholder-section{padding:24px}
+.placeholder-card{
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);
+  padding:50px 24px;text-align:center;color:var(--text-light);
+}
+.placeholder-card .ph-icon{font-size:50px;margin-bottom:16px}
+.placeholder-card h3{font-size:17px;font-weight:800;color:var(--text);margin-bottom:8px}
+.placeholder-card p{font-size:13px;color:var(--text-light)}
+
+/* Utilities */
+.mt-16{margin-top:16px}
+.mt-20{margin-top:20px}
+.lorry-card.status-active:hover{box-shadow:0 16px 48px rgba(34,197,94,.15),0 4px 12px rgba(15,23,42,.08)}
+.lorry-card.status-alert:hover{box-shadow:0 16px 48px rgba(239,68,68,.15),0 4px 12px rgba(15,23,42,.08)}
+
+/* ============================================================
+   ██████  RESPONSIVE BREAKPOINTS  ██████
+   ============================================================ */
+
+/* ── LARGE (≤1400px) ── */
+@media(max-width:1400px){
+  .stats-strip{grid-template-columns:repeat(3,1fr)}
+  .form-grid.col4{grid-template-columns:repeat(2,1fr)}
+  .totals-section{grid-template-columns:1fr 280px}
+}
+
+/* ── MEDIUM-LARGE (≤1200px) ── */
+@media(max-width:1200px){
+  .stats-strip{grid-template-columns:repeat(3,1fr)}
+  .stats-strip-sm{grid-template-columns:repeat(2,1fr)}
+  .form-grid.col4{grid-template-columns:repeat(2,1fr)}
+  .totals-section{grid-template-columns:1fr 260px}
+  .pm-grid{grid-template-columns:1fr}
+}
+
+/* ── MEDIUM / TABLET (≤1024px) ── */
+@media(max-width:1024px){
+  :root{--sidebar-w:240px}
+  .stats-strip{grid-template-columns:repeat(3,1fr);padding:16px}
+  .stats-strip-sm{grid-template-columns:repeat(2,1fr)}
+  .form-grid.col4{grid-template-columns:repeat(2,1fr)}
+  .form-grid.col3{grid-template-columns:repeat(2,1fr)}
+  .totals-section{grid-template-columns:1fr}
+  .notes-area textarea{min-height:80px}
+  .fleet-grid{grid-template-columns:repeat(2,1fr)}
+  .tab-btn{min-width:100px;font-size:11px;padding:9px 8px}
+}
+
+/* ── SMALL TABLET / LANDSCAPE PHONE (≤900px) ── */
+@media(max-width:900px){
+  /* Sidebar hides off-screen, toggled by menu button */
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:block}  /* always in DOM, toggled by JS display */
+  .main-content{margin-left:0}
+  .menu-toggle{display:flex}
+
+  /* Detail panel full-width */
+  .detail-panel{width:100%;max-width:100vw}
+
+  /* Fleet grid */
+  .fleet-grid{grid-template-columns:repeat(2,1fr)}
+
+  /* Stats */
+  .stats-strip{grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+  .stats-strip-sm{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stat-value{font-size:20px}
+
+  /* Billing form grids */
+  .form-grid.col4{grid-template-columns:repeat(2,1fr)}
+  .form-grid.col3{grid-template-columns:repeat(2,1fr)}
+  .form-grid.col2{grid-template-columns:1fr 1fr}
+
+  /* Totals */
+  .totals-section{grid-template-columns:1fr}
+
+  /* Items table → mobile cards on small */
+  .items-table-wrap{display:block}
+
+  /* Tab bar wrapping */
+  .tab-bar{gap:3px}
+  .tab-btn{min-width:80px;font-size:11px;padding:8px 6px;gap:5px}
+  .tab-btn i{display:none}
+
+  /* Action bar */
+  .action-bar{padding:12px 16px}
+  .btn{padding:8px 12px;font-size:12px}
+
+  /* Filter bar */
+  .filter-bar{padding:10px 14px}
+
+  /* Header */
+  .search-bar{display:none}
+  .top-header{padding:0 14px;gap:8px}
+}
+
+/* ── MOBILE (≤700px) ── */
+@media(max-width:700px){
+  /* Switch to mobile product card rows */
+  .items-table-wrap{display:none}
+  .product-card-row{display:block}
+  .add-row-btn{margin-top:4px}
+
+  /* Totals single col */
+  .totals-section{grid-template-columns:1fr}
+
+  /* Product/GST grids */
+  .pm-grid{grid-template-columns:1fr}
+  .gco-grid{grid-template-columns:1fr}
+
+  /* Form grids collapse */
+  .form-grid.col4,
+  .form-grid.col3,
+  .form-grid.col2{grid-template-columns:1fr}
+
+  /* Stats: 2 cols */
+  .stats-strip{grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+  .stats-strip-sm{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:12px}
+  .stat-value{font-size:18px}
+  .stat-icon{width:38px;height:38px;font-size:17px}
+
+  /* Fleet: single col */
+  .fleet-grid{grid-template-columns:1fr}
+  .fleet-section{padding:12px}
+  .billing-content{padding:12px}
+
+  /* Top header */
+  .top-header{padding:0 12px;height:56px;gap:8px}
+  .page-title{font-size:14px}
+
+  /* Section header */
+  .section-header{gap:8px}
+  .section-header h2{font-size:15px}
+
+  /* Alerts banner stacked */
+  .alerts-banner{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 14px;margin:0 12px 12px}
+  .alert-title{font-size:11px}
+
+  /* Tab bar scroll */
+  .tab-bar{overflow-x:auto;padding:4px;gap:2px}
+  .tab-btn{min-width:90px;font-size:10px;padding:8px 6px}
+
+  /* Panel tabs */
+  .ptab{font-size:11px;padding:12px 6px;min-width:60px}
+
+  /* Seller GST banner */
+  .seller-gst-banner{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 14px}
+  .seller-gst-banner .sgb-select{min-width:100%;width:100%}
+
+  /* sec-divider */
+  .sec-divider{flex-direction:column;align-items:flex-start;gap:4px}
+
+  /* Action bar wraps */
+  .action-bar{gap:6px}
+  .btn{padding:8px 10px;font-size:11px;gap:5px}
+
+  /* Header right */
+  .topbar-actions .tb-btn span{display:none}
+  .topbar-actions .tb-btn{padding:8px 10px}
+
+  /* Notif dropdown */
+  .notif-dropdown{right:0;width:280px}
+
+  /* Card body padding */
+  .card-body-pad{padding:14px}
+  .panel-body{padding:14px}
+
+  /* PM/GCO add form */
+  .pm-add-form{padding:14px}
+  .pm-add-form .form-grid.col4{grid-template-columns:1fr}
+
+  /* Lorry card */
+  .lorry-name{font-size:14px}
+  .driver-label{font-size:9px}
+}
+
+/* ── EXTRA SMALL (≤420px) ── */
+@media(max-width:420px){
+  :root{--radius:10px;--radius-sm:8px}
+  .stats-strip{grid-template-columns:1fr 1fr;padding:10px;gap:8px}
+  .stats-strip-sm{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-card{padding:10px;gap:8px}
+  .stat-value{font-size:16px}
+  .stat-icon{width:32px;height:32px;font-size:15px}
+  .stat-label{font-size:10px}
+  .stat-val{font-size:16px}
+
+  .fleet-grid{grid-template-columns:1fr}
+  .card-visual{height:100px}
+
+  .tab-btn{min-width:76px;font-size:9.5px}
+
+  .page-title{font-size:13px}
+  .notif-btn{width:36px;height:36px;font-size:16px}
+
+  .btn{font-size:10px;padding:7px 8px}
+
+  .pcr-totals{grid-template-columns:1fr 1fr}
+  .pcr-total-item:last-child{grid-column:1/-1}
+
+  .totals-box .total-row{font-size:12px}
+  .total-row.grand .val{font-size:15px}
+
+  .info-grid{grid-template-columns:1fr}
+
+  .pagination{padding:10px 12px}
+  .filter-bar{padding:8px 10px;gap:6px}
+  .filter-bar .inp{font-size:11px;padding:7px 10px}
+
+  /* Lorry card details collapse to 1 col */
+  .card-details{grid-template-columns:1fr 1fr}
+  .view-btn{padding:6px 10px;font-size:11px}
+
+  .modal-body{font-size:13px}
+  .modal-footer{flex-wrap:wrap;gap:6px}
+
+  .toast-container{bottom:12px;right:12px;max-width:calc(100vw - 24px)}
+  .toast{font-size:12px;padding:10px 14px}
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()" style="display:none"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 40 30" fill="none">
+        <rect x="2" y="10" width="28" height="14" rx="2" fill="#F97316"/>
+        <rect x="28" y="14" width="10" height="10" rx="1" fill="#F97316"/>
+        <circle cx="9" cy="24" r="4" fill="#0F172A" stroke="#F97316" stroke-width="2"/>
+        <circle cx="22" cy="24" r="4" fill="#0F172A" stroke="#F97316" stroke-width="2"/>
+        <circle cx="34" cy="24" r="3" fill="#0F172A" stroke="#F97316" stroke-width="2"/>
+        <polygon points="28,14 36,14 32,8" fill="#FB923C"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-main">Sammy Kura</span>
+      <span class="logo-sub">Fleet Management</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main Menu</div>
+    <button class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard',this)">
+      <span class="nav-icon">🏠</span><span>Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-fleet" onclick="navigate('fleet',this)">
+      <span class="nav-icon">🚛</span><span>My Fleet</span>
+    </button>
+    <button class="nav-item" id="nav-drivers" onclick="navigate('drivers',this)">
+      <span class="nav-icon">👨‍✈️</span><span>Drivers</span>
+    </button>
+    <button class="nav-item" id="nav-renewals" onclick="navigate('renewals',this)">
+      <span class="nav-icon">📅</span><span>Renewals</span>
+    </button>
+    <button class="nav-item" id="nav-fuel" onclick="navigate('fuel',this)">
+      <span class="nav-icon">⛽</span><span>Fuel Tracker</span>
+    </button>
+    <div class="nav-section-label">Finance</div>
+    <button class="nav-item" id="nav-billing" onclick="navigate('billing',this)">
+      <span class="nav-icon">🧾</span><span>Billing System</span>
+      <span class="badge">GST</span>
+    </button>
+    <button class="nav-item" id="nav-expenses" onclick="navigate('expenses',this)">
+      <span class="nav-icon">💰</span><span>Expenses</span>
+    </button>
+    <div class="nav-section-label">Reports</div>
+    <button class="nav-item" id="nav-reports" onclick="navigate('reports',this)">
+      <span class="nav-icon">📊</span><span>Reports</span>
+    </button>
+    <button class="nav-item" id="nav-customers" onclick="navigate('customers',this)">
+      <span class="nav-icon">👥</span><span>Customers</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar">SK</div>
+      <div>
+        <div class="user-name">Admin</div>
+        <div class="user-role">Fleet Manager</div>
+      </div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()">
+      <i class="fa-solid fa-circle-half-stroke"></i>
+      <span id="themeLabel">Light Mode</span>
+    </button>
+  </div>
+</aside>
+
+<div class="main-content">
+  <header class="top-header">
+    <div class="header-left">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div>
+        <h1 class="page-title" id="pageTitle">Fleet <span>Dashboard</span></h1>
+        <p class="page-date" id="currentDate"></p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Search lorry, driver...">
+      </div>
+      <div style="position:relative">
+        <div class="notif-btn" onclick="toggleNotif()">
+          🔔<span class="notif-badge">4</span>
+        </div>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">Alerts &amp; Notifications</div>
+          <div class="notif-item urgent"><span>🔴</span><div><strong>TN-01-AB-1234</strong> Insurance expired!</div></div>
+          <div class="notif-item warning"><span>🟡</span><div><strong>TN-02-CD-5678</strong> FC due in 7 days</div></div>
+          <div class="notif-item warning"><span>🟡</span><div><strong>TN-03-EF-9012</strong> Service overdue</div></div>
+          <div class="notif-item info"><span>🔵</span><div><strong>TN-04-GH-3456</strong> Claim pending review</div></div>
+        </div>
+      </div>
+      <div class="topbar-actions" id="billingActions" style="display:none">
+        <button class="tb-btn" onclick="exportCSV()">
+          <i class="fa-solid fa-file-csv"></i><span>Export</span>
+        </button>
+        <button class="tb-btn primary" onclick="billingTab('create')">
+          <i class="fa-solid fa-plus"></i><span>New Invoice</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════
+       DASHBOARD
+  ══════════════════════════════════════════════ -->
+  <div class="section-page active" id="section-dashboard">
+    <section class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#EFF6FF">🚛</div>
+        <div><div class="stat-value">11</div><div class="stat-label">Total Lorries</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#F0FDF4">✅</div>
+        <div><div class="stat-value" style="color:#22C55E">7</div><div class="stat-label">Active</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#FFF7ED">🔧</div>
+        <div><div class="stat-value" style="color:#F97316">2</div><div class="stat-label">In Service</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#FEF2F2">⚠️</div>
+        <div><div class="stat-value" style="color:#EF4444">2</div><div class="stat-label">Needs Attention</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#FFF7ED">💰</div>
+        <div><div class="stat-value">₹2.4L</div><div class="stat-label">This Month</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#EFF6FF">⛽</div>
+        <div><div class="stat-value">3,240L</div><div class="stat-label">Fuel Used</div></div>
+      </div>
+    </section>
+    <div class="alerts-banner">
+      <span class="alert-title">🔔 Urgent:</span>
+      <div class="alerts-scroll">
+        <span class="alert-tag red">TN-01-AB-1234 Insurance Expired</span>
+        <span class="alert-tag yellow">TN-05-IJ-7890 Permit Expiring in 5 days</span>
+        <span class="alert-tag yellow">TN-07-MN-2345 FC Due in 10 days</span>
+        <span class="alert-tag blue">TN-09-QR-6789 Claim Pending</span>
+      </div>
+    </div>
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>My Fleet <span class="fleet-count">11 Lorries</span></h2>
+        <div class="filter-tabs">
+          <button class="filter-btn active" onclick="filterFleet('all',this)">All</button>
+          <button class="filter-btn" onclick="filterFleet('active',this)">Active</button>
+          <button class="filter-btn" onclick="filterFleet('service',this)">In Service</button>
+          <button class="filter-btn" onclick="filterFleet('alert',this)">Alerts</button>
+        </div>
+      </div>
+      <div class="fleet-grid" id="fleetGrid"></div>
+    </section>
+  </div>
+
+  <!-- FLEET PAGE -->
+  <div class="section-page" id="section-fleet">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>My Fleet <span class="fleet-count">11 Lorries</span></h2>
+        <div class="filter-tabs">
+          <button class="filter-btn active" onclick="filterFleet2('all',this)">All</button>
+          <button class="filter-btn" onclick="filterFleet2('active',this)">Active</button>
+          <button class="filter-btn" onclick="filterFleet2('service',this)">In Service</button>
+          <button class="filter-btn" onclick="filterFleet2('alert',this)">Alerts</button>
+        </div>
+      </div>
+      <div class="fleet-grid" id="fleetGrid2"></div>
+    </section>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       BILLING
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-billing">
+    <div class="billing-content">
+      <div class="stats-strip-sm">
+        <div class="stat-card-sm orange">
+          <div class="stat-icon-sm"><i class="fa-solid fa-file-invoice"></i></div>
+          <div><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total Invoices</div></div>
+        </div>
+        <div class="stat-card-sm green">
+          <div class="stat-icon-sm"><i class="fa-solid fa-circle-check"></i></div>
+          <div><div class="stat-val" id="statPaid">—</div><div class="stat-lbl">Paid</div></div>
+        </div>
+        <div class="stat-card-sm red">
+          <div class="stat-icon-sm"><i class="fa-solid fa-clock"></i></div>
+          <div><div class="stat-val" id="statUnpaid">—</div><div class="stat-lbl">Unpaid</div></div>
+        </div>
+        <div class="stat-card-sm blue">
+          <div class="stat-icon-sm"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+          <div><div class="stat-val" id="statRevenue">—</div><div class="stat-lbl">This Month</div></div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn" id="btab-create" onclick="billingTab('create')">
+          <i class="fa-solid fa-plus-circle"></i> Create Invoice
+        </button>
+        <button class="tab-btn active" id="btab-list" onclick="billingTab('list')">
+          <i class="fa-solid fa-list"></i> Invoice History
+        </button>
+        <button class="tab-btn" id="btab-products" onclick="billingTab('products')">
+          <i class="fa-solid fa-boxes-stacked"></i> Product Master
+        </button>
+        <button class="tab-btn" id="btab-gstco" onclick="billingTab('gstco')">
+          <i class="fa-solid fa-building-columns"></i> GST Companies
+        </button>
+      </div>
+
+      <!-- CREATE TAB -->
+      <div class="tab-pane" id="bpane-create">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="ch-icon"><i class="fa-solid fa-file-invoice"></i></span>GST Tax Invoice</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+              <span style="font-size:11px;color:var(--muted)">Invoice No:</span>
+              <span id="displayInvNum" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--orange);font-size:13px">AUTO</span>
+            </div>
+          </div>
+          <div class="card-body-pad">
+            <div class="seller-gst-banner" id="sellerGstBanner">
+              <div style="min-width:0;flex:1">
+                <div class="sgb-label">Billing Under (Seller GSTIN)</div>
+                <select class="sgb-select" id="sellerGstSelect" onchange="onSellerGstChange()">
+                  <option value="">-- Select GST Company --</option>
+                </select>
+              </div>
+              <div class="seller-gst-info" id="sellerGstInfo" style="display:none">
+                <div>
+                  <div class="sgb-company" id="sgbCompanyName">—</div>
+                  <div class="sgb-state" id="sgbState">—</div>
+                </div>
+                <span class="sgb-chip" id="sgbGstNum">—</span>
+                <span class="sgb-chip" style="background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:#22C55E" id="sgbStateCode">State Code: —</span>
+              </div>
+            </div>
+            <form id="billingForm" novalidate>
+              <input type="hidden" id="invoiceId" value="">
+              <div class="form-grid col4">
+                <div class="form-group">
+                  <label class="required">Invoice Number</label>
+                  <div class="inp-icon">
+                    <i class="icon fa-solid fa-hashtag"></i>
+                    <input type="text" class="inp inp-readonly" id="invoiceNumber" readonly>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="required">Invoice Date</label>
+                  <input type="date" class="inp" id="invoiceDate">
+                </div>
+                <div class="form-group">
+                  <label>Payment Method</label>
+                  <select class="inp" id="paymentMethod">
+                    <option>Cash</option><option>UPI</option>
+                    <option>Bank Transfer</option><option>Cheque</option><option>Credit</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Invoice Status</label>
+                  <select class="inp" id="invoiceStatus">
+                    <option value="Unpaid">Unpaid</option><option value="Paid">Paid</option>
+                    <option value="Partial">Partial</option><option value="Draft">Draft</option>
+                  </select>
+                </div>
+              </div>
+              <div class="sec-divider">
+                <span>Customer Information</span>
+              </div>
+              <div class="form-grid col3">
+                <div class="form-group">
+                  <label class="required">Customer Name</label>
+                  <div class="autocomplete-wrap">
+                    <input type="text" class="inp" id="customerName" placeholder="Type name or mobile…" autocomplete="off">
+                    <div class="autocomplete-list" id="customerSuggestions"></div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="required">Mobile Number</label>
+                  <div class="inp-icon">
+                    <i class="icon fa-solid fa-phone"></i>
+                    <input type="tel" class="inp" id="customerMobile" placeholder="98765 43210" maxlength="15">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>GST Number</label>
+                  <div class="inp-icon">
+                    <i class="icon fa-solid fa-building"></i>
+                    <input type="text" class="inp" id="customerGst" placeholder="33AABCS1429B1ZB" maxlength="20" style="text-transform:uppercase">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px">
+                <label>Customer Address</label>
+                <textarea class="inp" id="customerAddress" rows="2" placeholder="Street, City, State, PIN"></textarea>
+              </div>
+              <div class="sec-divider"><span>Vehicle &amp; Driver Details</span></div>
+              <div class="form-grid col2">
+                <div class="form-group">
+                  <label>Vehicle / Lorry Number</label>
+                  <div class="inp-icon">
+                    <i class="icon fa-solid fa-truck"></i>
+                    <input type="text" class="inp" id="vehicleNumber" placeholder="TN 39 AB 1234" style="text-transform:uppercase">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Driver Name</label>
+                  <div class="inp-icon">
+                    <i class="icon fa-solid fa-user-tie"></i>
+                    <input type="text" class="inp" id="driverName" placeholder="Driver full name">
+                  </div>
+                </div>
+              </div>
+              <div class="sec-divider">
+                <span>Product / Material Details</span>
+                <span style="font-size:10px;background:#F0FDF4;color:var(--success);border:1px solid #BBF7D0;padding:2px 9px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:4px">
+                  <i class="fa-solid fa-bolt"></i> GST auto-loaded
+                </span>
+              </div>
+              <!-- Desktop table -->
+              <div class="items-table-wrap">
+                <table class="items-table">
+                  <thead>
+                    <tr>
+                      <th style="width:30px">#</th>
+                      <th>Product / Material</th>
+                      <th>HSN</th>
+                      <th>Unit</th>
+                      <th>Qty</th>
+                      <th>Rate (₹)</th>
+                      <th>Amount (₹)</th>
+                      <th>GST %</th>
+                      <th>GST Amt</th>
+                      <th>Total (₹)</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="itemsBody"></tbody>
+                </table>
+              </div>
+              <!-- Mobile card rows -->
+              <div id="mobileItemsWrap"></div>
+              <button type="button" class="add-row-btn" onclick="addItemRow()">
+                <i class="fa-solid fa-plus"></i> Add Product Row
+              </button>
+              <div class="totals-section">
+                <div class="notes-area">
+                  <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Notes / Remarks</label>
+                  <textarea id="invoiceNotes" class="inp" placeholder="Any special instructions…" style="flex:1;resize:none;min-height:120px"></textarea>
+                </div>
+                <div class="totals-box">
+                  <div class="total-row"><span class="lbl">Subtotal</span><span class="val" id="tSubtotal">₹ 0.00</span></div>
+                  <div class="total-row gst-row"><span class="lbl">CGST</span><span class="val" id="tCgst">₹ 0.00</span></div>
+                  <div class="total-row gst-row"><span class="lbl">SGST</span><span class="val" id="tSgst">₹ 0.00</span></div>
+                  <div class="total-row gst-row"><span class="lbl">Total GST</span><span class="val" id="tGst">₹ 0.00</span></div>
+                  <div class="total-row grand"><span class="lbl">Grand Total</span><span class="val" id="tGrand">₹ 0.00</span></div>
+                  <div class="paid-group">
+                    <label style="font-size:12px;font-weight:600;color:var(--text2)">Paid Amount (₹)</label>
+                    <input type="number" class="inp" id="paidAmount" placeholder="0.00" min="0" step="0.01" oninput="recalcTotals()">
+                  </div>
+                  <div class="total-row paid" style="margin-top:6px"><span class="lbl">Paid</span><span class="val" id="tPaid">₹ 0.00</span></div>
+                  <div class="total-row balance"><span class="lbl">Balance Due</span><span class="val" id="tBalance">₹ 0.00</span></div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="action-bar">
+            <button class="btn btn-primary" onclick="saveInvoice()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button class="btn btn-success" onclick="printInvoice()"><i class="fa-solid fa-print"></i> Print</button>
+            <button class="btn btn-info" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-warning" onclick="shareInvoice()"><i class="fa-solid fa-share-nodes"></i> Share</button>
+            <button class="btn btn-secondary" onclick="resetForm()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIST TAB -->
+      <div class="tab-pane active" id="bpane-list">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="ch-icon"><i class="fa-solid fa-list-ul"></i></span>Invoice History</h3>
+            <button class="btn btn-secondary" onclick="loadInvoiceList()" style="padding:7px 12px;font-size:12px">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh
+            </button>
+          </div>
+          <div class="filter-bar">
+            <div class="inp-icon" style="flex:1;min-width:160px;max-width:280px">
+              <i class="icon fa-solid fa-magnifying-glass"></i>
+              <input type="text" class="inp" id="searchInvoice" placeholder="Search invoice, customer…" oninput="debounceSearch()">
+            </div>
+            <input type="date" class="inp" id="filterFrom" style="max-width:150px" onchange="loadInvoiceList()">
+            <input type="date" class="inp" id="filterTo" style="max-width:150px" onchange="loadInvoiceList()">
+            <select class="inp" id="filterStatus" style="max-width:130px" onchange="loadInvoiceList()">
+              <option value="">All Status</option>
+              <option>Paid</option><option>Unpaid</option><option>Partial</option>
+              <option>Draft</option><option>Cancelled</option>
+            </select>
+            <button class="btn btn-secondary" onclick="clearFilters()" style="padding:8px 14px;font-size:12px">
+              <i class="fa-solid fa-xmark"></i> Clear
+            </button>
+          </div>
+          <div class="list-table-wrap">
+            <table class="list-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th><th>Date</th><th>Customer</th>
+                  <th>Vehicle</th><th>Seller GSTIN</th><th>Payment</th>
+                  <th style="text-align:right">Grand Total</th>
+                  <th style="text-align:right">Balance</th>
+                  <th>Status</th><th style="text-align:center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="invoiceListBody">
+                <tr class="loading-row"><td colspan="10">
+                  <div class="empty-state">
+                    <div class="es-icon">🧾</div>
+                    <h4>No Invoices Yet</h4>
+                    <p>Create your first invoice using the <strong>New Invoice</strong> button.</p>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="paginationWrap">
+            <div class="page-info" id="pageInfo">Showing 0 of 0</div>
+            <div class="page-btns" id="pageBtns"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCT MASTER TAB -->
+      <div class="tab-pane" id="bpane-products">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="ch-icon"><i class="fa-solid fa-boxes-stacked"></i></span>Product Master
+              <span style="font-size:10px;background:var(--orange-lt);color:var(--orange);padding:2px 9px;border-radius:20px;font-weight:700;border:1px solid var(--orange-light)" id="pmCount"></span>
+            </h3>
+            <button class="btn btn-primary" onclick="togglePmForm()" style="padding:7px 14px;font-size:12px">
+              <i class="fa-solid fa-plus"></i> Add Product
+            </button>
+          </div>
+          <div class="card-body-pad">
+            <div class="pm-add-form" id="pmForm" style="display:none">
+              <h4><i class="fa-solid fa-pen-to-square" style="color:var(--orange)"></i> <span id="pmFormTitle">Add New Product</span></h4>
+              <input type="hidden" id="pmEditId">
+              <div class="form-grid col4" style="margin-bottom:12px">
+                <div class="form-group" style="grid-column:span 2">
+                  <label class="required">Product Name</label>
+                  <input type="text" class="inp" id="pmName" placeholder="e.g. Sengal, Cement, Sand">
+                </div>
+                <div class="form-group">
+                  <label class="required">Rate (₹)</label>
+                  <input type="number" class="inp" id="pmRate" placeholder="0.00" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label class="required">GST % <span class="inp-auto-tag"><i class="fa-solid fa-bolt" style="font-size:8px"></i> Linked</span></label>
+                  <select class="inp" id="pmGst">
+                    <option value="0">0% (Exempt)</option>
+                    <option value="5">5%</option><option value="12">12%</option>
+                    <option value="18">18%</option><option value="28">28%</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Unit</label>
+                  <input type="text" class="inp" id="pmUnit" placeholder="Ton, Bag, Trip…">
+                </div>
+                <div class="form-group">
+                  <label>HSN Code</label>
+                  <input type="text" class="inp" id="pmHsn" placeholder="e.g. 2517">
+                </div>
+                <div class="form-group">
+                  <label>Icon/Emoji</label>
+                  <input type="text" class="inp" id="pmIcon" placeholder="🪨" maxlength="4">
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button type="button" class="btn btn-primary" onclick="saveProduct()"><i class="fa-solid fa-floppy-disk"></i> Save Product</button>
+                <button type="button" class="btn btn-secondary" onclick="togglePmForm(false)"><i class="fa-solid fa-xmark"></i> Cancel</button>
+              </div>
+            </div>
+            <div class="pm-grid" id="pmGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GST COMPANIES TAB -->
+      <div class="tab-pane" id="bpane-gstco">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="ch-icon"><i class="fa-solid fa-building-columns"></i></span>GST Company Master
+              <span style="font-size:10px;background:var(--orange-lt);color:var(--orange);padding:2px 9px;border-radius:20px;font-weight:700;border:1px solid var(--orange-light)" id="gcoCount"></span>
+            </h3>
+            <button class="btn btn-primary" onclick="toggleGcoForm()" style="padding:7px 14px;font-size:12px">
+              <i class="fa-solid fa-plus"></i> Add GST Company
+            </button>
+          </div>
+          <div class="card-body-pad">
+            <div class="pm-add-form" id="gcoForm" style="display:none">
+              <h4><i class="fa-solid fa-building-columns" style="color:var(--orange)"></i> <span id="gcoFormTitle">Add GST Company</span></h4>
+              <input type="hidden" id="gcoEditId">
+              <div class="form-grid col3" style="margin-bottom:12px">
+                <div class="form-group" style="grid-column:span 2">
+                  <label class="required">Company Name</label>
+                  <input type="text" class="inp" id="gcoName" placeholder="e.g. SK Blue Metals">
+                </div>
+                <div class="form-group">
+                  <label class="required">GSTIN</label>
+                  <input type="text" class="inp" id="gcoGst" placeholder="33ABCDE1234F1Z5" maxlength="15" style="text-transform:uppercase">
+                </div>
+                <div class="form-group">
+                  <label class="required">State</label>
+                  <input type="text" class="inp" id="gcoState" placeholder="Tamil Nadu">
+                </div>
+                <div class="form-group">
+                  <label class="required">State Code</label>
+                  <input type="text" class="inp" id="gcoStateCode" placeholder="33" maxlength="2">
+                </div>
+                <div class="form-group">
+                  <label>Address</label>
+                  <input type="text" class="inp" id="gcoAddress" placeholder="City, State">
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button type="button" class="btn btn-primary" onclick="saveGstCompany()"><i class="fa-solid fa-floppy-disk"></i> Save Company</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleGcoForm(false)"><i class="fa-solid fa-xmark"></i> Cancel</button>
+              </div>
+            </div>
+            <div class="pm-grid" id="gcoGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       DRIVERS SECTION
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-drivers">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>👨‍✈️ Drivers <span class="fleet-count" id="driverCount">11 Drivers</span></h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" class="inp" id="driverSearch" placeholder="🔍 Search driver..." style="width:180px;padding:7px 12px" oninput="filterDrivers()">
+          <button class="btn btn-primary" onclick="openDriverModal()"><i class="fa-solid fa-plus"></i> Add Driver</button>
+        </div>
+      </div>
+      <div class="stats-strip" style="padding:0 0 20px">
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">✅</div><div><div class="stat-value" style="color:#22C55E" id="drvActive">9</div><div class="stat-label">Active Drivers</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">❌</div><div><div class="stat-value" style="color:#EF4444" id="drvInactive">2</div><div class="stat-label">Inactive</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEFCE8">⚠️</div><div><div class="stat-value" style="color:#B45309" id="drvLicExp">3</div><div class="stat-label">License Expiring</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EFF6FF">🚛</div><div><div class="stat-value" id="drvAssigned">11</div><div class="stat-label">Assigned</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED">📞</div><div><div class="stat-value" id="drvTotal">11</div><div class="stat-label">Total Drivers</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">⭐</div><div><div class="stat-value" style="color:var(--orange)">4.5</div><div class="stat-label">Avg Rating</div></div></div>
+      </div>
+      <div class="fleet-grid" id="driversGrid"></div>
+    </section>
+    <!-- Driver Modal -->
+    <div class="modal-overlay" id="driverModal">
+      <div class="modal" style="width:500px">
+        <div class="modal-header">
+          <h4><i class="fa-solid fa-id-card" style="color:var(--orange)"></i> <span id="driverModalTitle">Add New Driver</span></h4>
+          <button class="modal-close" onclick="closeModal('driverModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding:20px">
+          <input type="hidden" id="driverEditId">
+          <div class="form-grid col2" style="margin-bottom:12px">
+            <div class="form-group"><label class="required">Driver Name</label><input type="text" class="inp" id="drvName" placeholder="Full Name"></div>
+            <div class="form-group"><label class="required">Mobile</label><input type="text" class="inp" id="drvMobile" placeholder="+91 XXXXXXXXXX"></div>
+            <div class="form-group"><label class="required">License No</label><input type="text" class="inp" id="drvLicense" placeholder="TN-XX-XXXXXXXXXX"></div>
+            <div class="form-group"><label class="required">License Expiry</label><input type="date" class="inp" id="drvLicExp"></div>
+            <div class="form-group"><label>Assigned Vehicle</label>
+              <select class="inp" id="drvVehicle">
+                <option value="">-- Not Assigned --</option>
+                <option>TN-01-AB-1234</option><option>TN-02-CD-5678</option><option>TN-03-EF-9012</option>
+                <option>TN-04-GH-3456</option><option>TN-05-IJ-7890</option><option>TN-06-KL-1234</option>
+                <option>TN-07-MN-2345</option><option>TN-08-OP-3456</option><option>TN-09-QR-6789</option>
+                <option>TN-10-ST-4567</option><option>TN-11-UV-8901</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Status</label>
+              <select class="inp" id="drvStatus"><option value="active">Active</option><option value="inactive">Inactive</option><option value="leave">On Leave</option></select>
+            </div>
+            <div class="form-group"><label>Experience (yrs)</label><input type="number" class="inp" id="drvExp" placeholder="5" min="0"></div>
+            <div class="form-group"><label>Monthly Salary (₹)</label><input type="number" class="inp" id="drvSalary" placeholder="20000" min="0"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px"><label>Address</label><textarea class="inp" id="drvAddress" rows="2" placeholder="Full Address"></textarea></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('driverModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveDriver()"><i class="fa-solid fa-floppy-disk"></i> Save Driver</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       RENEWALS SECTION
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-renewals">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>📅 Document Renewals</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="inp" id="renewalFilter" style="padding:7px 12px;width:160px" onchange="renderRenewals()">
+            <option value="all">All Documents</option>
+            <option value="expired">Expired</option>
+            <option value="soon">Due in 30 days</option>
+            <option value="ok">Valid</option>
+          </select>
+          <select class="inp" id="renewalTypeFilter" style="padding:7px 12px;width:160px" onchange="renderRenewals()">
+            <option value="all">All Types</option>
+            <option value="Insurance">Insurance</option>
+            <option value="FC">Fitness Certificate</option>
+            <option value="Permit">Permit</option>
+            <option value="Pollution">Pollution</option>
+          </select>
+        </div>
+      </div>
+      <div class="stats-strip" style="padding:0 0 20px">
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">🔴</div><div><div class="stat-value" style="color:#EF4444" id="renewExpired">2</div><div class="stat-label">Expired</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEFCE8">🟡</div><div><div class="stat-value" style="color:#B45309" id="renewSoon">5</div><div class="stat-label">Due in 30 Days</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">✅</div><div><div class="stat-value" style="color:#22C55E" id="renewOk">37</div><div class="stat-label">Valid</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EFF6FF">📋</div><div><div class="stat-value" id="renewTotal">44</div><div class="stat-label">Total Docs</div></div></div>
+      </div>
+      <div class="card" style="margin:0">
+        <div class="card-header"><h3><span class="ch-icon">📅</span>Renewal Schedule</h3></div>
+        <div class="list-table-wrap">
+          <table class="list-table" id="renewalsTable">
+            <thead><tr>
+              <th>Vehicle</th><th>Driver</th><th>Document Type</th>
+              <th>Expiry Date</th><th>Days Left</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody id="renewalsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       FUEL TRACKER SECTION
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-fuel">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>⛽ Fuel Tracker</h2>
+        <button class="btn btn-primary" onclick="openFuelModal()"><i class="fa-solid fa-plus"></i> Log Fuel</button>
+      </div>
+      <div class="stats-strip" style="padding:0 0 20px">
+        <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED">⛽</div><div><div class="stat-value" id="fuelTotalLitres">3,240L</div><div class="stat-label">Total Litres (Month)</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">💸</div><div><div class="stat-value" id="fuelTotalCost">₹3.24L</div><div class="stat-label">Total Cost (Month)</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">📈</div><div><div class="stat-value" id="fuelAvgMileage">5.2</div><div class="stat-label">Avg km/L</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EFF6FF">🚛</div><div><div class="stat-value" id="fuelEntries">24</div><div class="stat-label">Total Entries</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEFCE8">🏆</div><div><div class="stat-value" style="color:var(--success)">Sammy 05</div><div class="stat-label">Best Mileage</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">⚠️</div><div><div class="stat-value" style="color:var(--danger)">Sammy 09</div><div class="stat-label">Worst Mileage</div></div></div>
+      </div>
+      <div class="card" style="margin:0">
+        <div class="card-header">
+          <h3><span class="ch-icon">⛽</span>Fuel Log</h3>
+          <div style="display:flex;gap:8px">
+            <input type="month" class="inp" id="fuelMonthFilter" style="padding:7px 12px" onchange="renderFuelLog()">
+            <select class="inp" id="fuelVehicleFilter" style="padding:7px 12px;width:160px" onchange="renderFuelLog()">
+              <option value="all">All Vehicles</option>
+            </select>
+          </div>
+        </div>
+        <div class="list-table-wrap">
+          <table class="list-table">
+            <thead><tr>
+              <th>Date</th><th>Vehicle</th><th>Driver</th><th>Litres</th>
+              <th>Rate/L (₹)</th><th>Amount (₹)</th><th>Odometer</th><th>Station</th><th>Action</th>
+            </tr></thead>
+            <tbody id="fuelLogBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination"><span class="page-info" id="fuelInfo">Showing all entries</span></div>
+      </div>
+    </section>
+    <!-- Fuel Modal -->
+    <div class="modal-overlay" id="fuelModal">
+      <div class="modal" style="width:480px">
+        <div class="modal-header">
+          <h4><i class="fa-solid fa-gas-pump" style="color:var(--orange)"></i> Log Fuel Entry</h4>
+          <button class="modal-close" onclick="closeModal('fuelModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding:20px">
+          <input type="hidden" id="fuelEditId">
+          <div class="form-grid col2" style="margin-bottom:12px">
+            <div class="form-group"><label class="required">Date</label><input type="date" class="inp" id="fuelDate"></div>
+            <div class="form-group"><label class="required">Vehicle</label>
+              <select class="inp" id="fuelVehicle">
+                <option value="">-- Select --</option>
+                <option>TN-01-AB-1234 (Sammy 01)</option><option>TN-02-CD-5678 (Sammy 02)</option>
+                <option>TN-03-EF-9012 (Sammy 03)</option><option>TN-04-GH-3456 (Sammy 04)</option>
+                <option>TN-05-IJ-7890 (Sammy 05)</option><option>TN-06-KL-1234 (Sammy 06)</option>
+                <option>TN-07-MN-2345 (Sammy 07)</option><option>TN-08-OP-3456 (Sammy 08)</option>
+                <option>TN-09-QR-6789 (Sammy 09)</option><option>TN-10-ST-4567 (Sammy 10)</option>
+                <option>TN-11-UV-8901 (Sammy 11)</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="required">Litres</label><input type="number" class="inp" id="fuelLitres" placeholder="0.00" min="0" step="0.01" oninput="calcFuelAmount()"></div>
+            <div class="form-group"><label class="required">Rate per Litre (₹)</label><input type="number" class="inp" id="fuelRate" placeholder="100.00" min="0" step="0.01" oninput="calcFuelAmount()"></div>
+            <div class="form-group"><label>Amount (₹)</label><input type="number" class="inp inp-readonly" id="fuelAmount" placeholder="Auto" readonly></div>
+            <div class="form-group"><label>Odometer (km)</label><input type="number" class="inp" id="fuelOdo" placeholder="150000"></div>
+            <div class="form-group"><label>Fuel Station</label><input type="text" class="inp" id="fuelStation" placeholder="Indian Oil, HPCL..."></div>
+            <div class="form-group"><label>Payment</label>
+              <select class="inp" id="fuelPayment"><option>Cash</option><option>Card</option><option>UPI</option><option>Account</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Notes</label><input type="text" class="inp" id="fuelNotes" placeholder="Optional notes"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('fuelModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveFuelEntry()"><i class="fa-solid fa-floppy-disk"></i> Save Entry</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       EXPENSES SECTION
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-expenses">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>💰 Expense Manager</h2>
+        <button class="btn btn-primary" onclick="openExpenseModal()"><i class="fa-solid fa-plus"></i> Add Expense</button>
+      </div>
+      <div class="stats-strip" style="padding:0 0 20px">
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">💸</div><div><div class="stat-value" id="expTotal">₹4.2L</div><div class="stat-label">Total (Month)</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED">🔧</div><div><div class="stat-value" id="expMaintenance">₹1.8L</div><div class="stat-label">Maintenance</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEFCE8">👨‍✈️</div><div><div class="stat-value" id="expSalary">₹1.4L</div><div class="stat-label">Driver Salary</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">🛣️</div><div><div class="stat-value" id="expToll">₹28K</div><div class="stat-label">Tolls</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EFF6FF">🏦</div><div><div class="stat-value" id="expEmi">₹60K</div><div class="stat-label">EMI</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">📦</div><div><div class="stat-value" id="expOther">₹24K</div><div class="stat-label">Other</div></div></div>
+      </div>
+      <div class="card" style="margin:0">
+        <div class="card-header">
+          <h3><span class="ch-icon">💰</span>Expense Log</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="month" class="inp" id="expMonthFilter" style="padding:7px 12px" onchange="renderExpenses()">
+            <select class="inp" id="expCatFilter" style="padding:7px 12px;width:160px" onchange="renderExpenses()">
+              <option value="all">All Categories</option>
+              <option>Maintenance</option><option>Driver Salary</option><option>Fuel</option>
+              <option>Toll</option><option>EMI</option><option>Insurance</option><option>Tyre</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="list-table-wrap">
+          <table class="list-table">
+            <thead><tr>
+              <th>Date</th><th>Vehicle</th><th>Category</th><th>Description</th>
+              <th>Amount (₹)</th><th>Payment</th><th>Action</th>
+            </tr></thead>
+            <tbody id="expenseBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination"><span class="page-info" id="expInfo">Showing all entries</span></div>
+      </div>
+    </section>
+    <!-- Expense Modal -->
+    <div class="modal-overlay" id="expenseModal">
+      <div class="modal" style="width:480px">
+        <div class="modal-header">
+          <h4><i class="fa-solid fa-receipt" style="color:var(--orange)"></i> <span id="expModalTitle">Add Expense</span></h4>
+          <button class="modal-close" onclick="closeModal('expenseModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding:20px">
+          <input type="hidden" id="expEditId">
+          <div class="form-grid col2" style="margin-bottom:12px">
+            <div class="form-group"><label class="required">Date</label><input type="date" class="inp" id="expDate"></div>
+            <div class="form-group"><label class="required">Category</label>
+              <select class="inp" id="expCategory">
+                <option>Maintenance</option><option>Driver Salary</option><option>Fuel</option>
+                <option>Toll</option><option>EMI</option><option>Insurance</option><option>Tyre</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Vehicle</label>
+              <select class="inp" id="expVehicle">
+                <option value="">-- All / General --</option>
+                <option>TN-01-AB-1234</option><option>TN-02-CD-5678</option><option>TN-03-EF-9012</option>
+                <option>TN-04-GH-3456</option><option>TN-05-IJ-7890</option><option>TN-06-KL-1234</option>
+                <option>TN-07-MN-2345</option><option>TN-08-OP-3456</option><option>TN-09-QR-6789</option>
+                <option>TN-10-ST-4567</option><option>TN-11-UV-8901</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="required">Amount (₹)</label><input type="number" class="inp" id="expAmount" placeholder="0.00" min="0" step="0.01"></div>
+            <div class="form-group" style="grid-column:span 2"><label class="required">Description</label><input type="text" class="inp" id="expDesc" placeholder="e.g. Engine oil change, Tyre replacement..."></div>
+            <div class="form-group"><label>Payment Method</label>
+              <select class="inp" id="expPayment"><option>Cash</option><option>Card</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+            </div>
+            <div class="form-group"><label>Bill/Receipt No</label><input type="text" class="inp" id="expBill" placeholder="Optional"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('expenseModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveExpense()"><i class="fa-solid fa-floppy-disk"></i> Save Expense</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       REPORTS SECTION
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-reports">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>📊 Reports &amp; Analytics</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="inp" id="reportPeriod" style="padding:7px 12px;width:160px" onchange="renderReports()">
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="year">This Year</option>
+            <option value="all">All Time</option>
+          </select>
+          <button class="btn btn-secondary" onclick="exportReportCSV()"><i class="fa-solid fa-file-csv"></i> Export</button>
+        </div>
+      </div>
+      <!-- P&L Summary -->
+      <div class="stats-strip" style="padding:0 0 20px">
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">📈</div><div><div class="stat-value" style="color:var(--success)" id="rptIncome">₹5.16L</div><div class="stat-label">Total Income</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">📉</div><div><div class="stat-value" style="color:var(--danger)" id="rptExpense">₹2.37L</div><div class="stat-label">Total Expenses</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED">💹</div><div><div class="stat-value" style="color:var(--orange)" id="rptProfit">₹2.79L</div><div class="stat-label">Net Profit</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EFF6FF">📊</div><div><div class="stat-value" style="color:var(--info)" id="rptMargin">54%</div><div class="stat-label">Profit Margin</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEFCE8">⛽</div><div><div class="stat-value" id="rptFuelCost">₹3.24L</div><div class="stat-label">Fuel Cost</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">🚛</div><div><div class="stat-value" id="rptActiveVeh">9</div><div class="stat-label">Active Vehicles</div></div></div>
+      </div>
+      <!-- Vehicle-wise P&L -->
+      <div class="card" style="margin:0 0 20px">
+        <div class="card-header"><h3><span class="ch-icon">🚛</span>Vehicle-wise P&amp;L</h3></div>
+        <div class="list-table-wrap">
+          <table class="list-table">
+            <thead><tr>
+              <th>Vehicle</th><th>Driver</th><th>Route</th>
+              <th>Income (₹)</th><th>Expense (₹)</th><th>Profit (₹)</th><th>Margin</th><th>Status</th>
+            </tr></thead>
+            <tbody id="vehiclePLBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Expense Breakdown -->
+      <div class="card" style="margin:0">
+        <div class="card-header"><h3><span class="ch-icon">📊</span>Expense Breakdown</h3></div>
+        <div class="card-body-pad">
+          <div id="expBreakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       CUSTOMERS SECTION
+  ══════════════════════════════════════════════ -->
+  <div class="section-page" id="section-customers">
+    <section class="fleet-section">
+      <div class="section-header">
+        <h2>👥 Customers</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" class="inp" id="custSearch" placeholder="🔍 Search customer..." style="width:200px;padding:7px 12px" oninput="filterCustomers()">
+          <button class="btn btn-primary" onclick="openCustomerModal()"><i class="fa-solid fa-plus"></i> Add Customer</button>
+        </div>
+      </div>
+      <div class="stats-strip" style="padding:0 0 20px">
+        <div class="stat-card"><div class="stat-icon" style="background:#EFF6FF">👥</div><div><div class="stat-value" id="custTotal">0</div><div class="stat-label">Total Customers</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">✅</div><div><div class="stat-value" style="color:var(--success)" id="custActive">0</div><div class="stat-label">Active</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED">🧾</div><div><div class="stat-value" id="custInvoices">0</div><div class="stat-label">Total Invoices</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF2F2">⏳</div><div><div class="stat-value" style="color:var(--danger)" id="custOutstanding">₹0</div><div class="stat-label">Outstanding</div></div></div>
+      </div>
+      <div id="customersGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px"></div>
+    </section>
+    <!-- Customer Modal -->
+    <div class="modal-overlay" id="customerModal">
+      <div class="modal" style="width:500px">
+        <div class="modal-header">
+          <h4><i class="fa-solid fa-user-plus" style="color:var(--orange)"></i> <span id="custModalTitle">Add Customer</span></h4>
+          <button class="modal-close" onclick="closeModal('customerModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding:20px">
+          <input type="hidden" id="custEditId">
+          <div class="form-grid col2" style="margin-bottom:12px">
+            <div class="form-group"><label class="required">Customer Name</label><input type="text" class="inp" id="custName" placeholder="Full Name / Company"></div>
+            <div class="form-group"><label class="required">Mobile</label><input type="text" class="inp" id="custMobile" placeholder="+91 XXXXXXXXXX"></div>
+            <div class="form-group"><label>Email</label><input type="email" class="inp" id="custEmail" placeholder="email@example.com"></div>
+            <div class="form-group"><label>GST Number</label><input type="text" class="inp" id="custGst" placeholder="Optional" style="text-transform:uppercase"></div>
+            <div class="form-group" style="grid-column:span 2"><label>Address</label><textarea class="inp" id="custAddress" rows="2" placeholder="Full Address"></textarea></div>
+            <div class="form-group"><label>Customer Type</label>
+              <select class="inp" id="custType"><option>Regular</option><option>VIP</option><option>Corporate</option><option>One-time</option></select>
+            </div>
+            <div class="form-group"><label>Credit Limit (₹)</label><input type="number" class="inp" id="custCredit" placeholder="0" min="0"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('customerModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveCustomer()"><i class="fa-solid fa-floppy-disk"></i> Save Customer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="panel-header">
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="panel-truck-visual" id="panelTruckVisual"></div>
+    <h2 id="panelTitle">Lorry Details</h2>
+    <p id="panelSub"></p>
+  </div>
+  <div class="panel-tabs">
+    <button class="ptab active" onclick="switchDetailTab('overview',this)">Overview</button>
+    <button class="ptab" onclick="switchDetailTab('documents',this)">Documents</button>
+    <button class="ptab" onclick="switchDetailTab('service',this)">Service</button>
+    <button class="ptab" onclick="switchDetailTab('finance',this)">Finance</button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Confirm Delete</h4>
+      <button class="modal-close" onclick="closeModal('deleteModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete invoice <strong id="deleteInvNum" style="color:var(--danger)"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">
+        <i class="fa-solid fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Theme ── */
+(function(){
+  const saved=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',saved);
+})();
+function toggleTheme(){
+  const root=document.documentElement;
+  const isDark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme',isDark?'light':'dark');
+  localStorage.setItem('theme',isDark?'light':'dark');
+  updateThemeLabel();
+}
+function updateThemeLabel(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('themeLabel').textContent=isDark?'Dark Mode':'Light Mode';
+}
+
+/* ── Navigation ── */
+const pageTitles={
+  dashboard:'Fleet <span>Dashboard</span>',fleet:'My <span>Fleet</span>',
+  drivers:'<span>Drivers</span>',renewals:'Document <span>Renewals</span>',
+  fuel:'Fuel <span>Tracker</span>',billing:'GST <span>Billing System</span>',
+  expenses:'<span>Expenses</span>',reports:'<span>Reports</span>',customers:'<span>Customers</span>',
+};
+function navigate(section,btn){
+  document.querySelectorAll('.section-page').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+section).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pageTitle').innerHTML=pageTitles[section]||section;
+  document.getElementById('billingActions').style.display=section==='billing'?'flex':'none';
+  closeSidebar();
+  if(section==='fleet'&&!document.getElementById('fleetGrid2').children.length)renderFleet(lorries,'fleetGrid2');
+  if(section==='billing'){loadInvoiceList();loadStats();syncSellerGstDropdown();}
+}
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('open');
+  document.getElementById('sidebarOverlay').style.display=sb.classList.contains('open')?'block':'none';
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').style.display='none';
+}
+
+/* ── Fleet Data ── */
+const lorries=[
+  {id:1,name:"Sammy 01",regNo:"TN-01-AB-1234",driver:"Rajan Kumar",status:"alert",statusLabel:"Insurance Expired",lastService:"2024-10-12",insuranceExp:"2024-12-01",fcExp:"2025-06-15",permitExp:"2025-09-10",pollutionExp:"2025-04-30",emiStatus:"Paid",fuelPercent:65,route:"Chennai → Madurai",income:"₹48,500",expense:"₹21,200",color:"#EF4444",claims:[{date:"2024-09-05",type:"Accident",status:"Settled",amt:"₹45,000"}],services:[{date:"2024-10-12",type:"Oil Change + Brake Check",cost:"₹4,200"},{date:"2024-07-08",type:"Tyre Replacement",cost:"₹18,000"}]},
+  {id:2,name:"Sammy 02",regNo:"TN-02-CD-5678",driver:"Murugan S.",status:"active",statusLabel:"Active",lastService:"2025-01-20",insuranceExp:"2026-01-20",fcExp:"2025-05-18",permitExp:"2025-12-01",pollutionExp:"2025-10-15",emiStatus:"Paid",fuelPercent:80,route:"Trichy → Coimbatore",income:"₹52,000",expense:"₹18,500",color:"#22C55E",claims:[],services:[{date:"2025-01-20",type:"Full Service",cost:"₹7,800"}]},
+  {id:3,name:"Sammy 03",regNo:"TN-03-EF-9012",driver:"Selvan P.",status:"service",statusLabel:"In Service",lastService:"2025-02-05",insuranceExp:"2025-11-10",fcExp:"2025-08-20",permitExp:"2026-01-15",pollutionExp:"2025-07-22",emiStatus:"Pending",fuelPercent:30,route:"Salem → Erode",income:"₹36,200",expense:"₹22,000",color:"#F97316",claims:[{date:"2025-01-15",type:"Minor Dent",status:"Pending",amt:"₹12,000"}],services:[{date:"2025-02-05",type:"Engine Overhaul (Ongoing)",cost:"₹32,000"}]},
+  {id:4,name:"Sammy 04",regNo:"TN-04-GH-3456",driver:"Balu M.",status:"warning",statusLabel:"Permit Expiring",lastService:"2024-12-18",insuranceExp:"2025-08-14",fcExp:"2025-07-10",permitExp:"2025-05-20",pollutionExp:"2025-11-30",emiStatus:"Paid",fuelPercent:55,route:"Trichy → Chennai",income:"₹61,000",expense:"₹24,300",color:"#FACC15",claims:[],services:[{date:"2024-12-18",type:"Tyre & Alignment",cost:"₹9,500"}]},
+  {id:5,name:"Sammy 05",regNo:"TN-05-IJ-7890",driver:"Velu K.",status:"active",statusLabel:"Active",lastService:"2025-02-28",insuranceExp:"2025-12-31",fcExp:"2025-09-05",permitExp:"2026-02-28",pollutionExp:"2025-12-01",emiStatus:"Paid",fuelPercent:90,route:"Madurai → Tirunelveli",income:"₹44,800",expense:"₹17,600",color:"#22C55E",claims:[],services:[{date:"2025-02-28",type:"AC + Electrical",cost:"₹5,200"}]},
+  {id:6,name:"Sammy 06",regNo:"TN-06-KL-1234",driver:"Anand R.",status:"active",statusLabel:"Active",lastService:"2025-01-10",insuranceExp:"2025-10-22",fcExp:"2025-06-30",permitExp:"2025-11-14",pollutionExp:"2025-08-08",emiStatus:"Paid",fuelPercent:70,route:"Vellore → Trichy",income:"₹39,500",expense:"₹16,800",color:"#22C55E",claims:[],services:[{date:"2025-01-10",type:"Filter & Fluid Change",cost:"₹3,400"}]},
+  {id:7,name:"Sammy 07",regNo:"TN-07-MN-2345",driver:"Karthik L.",status:"warning",statusLabel:"FC Due Soon",lastService:"2024-11-30",insuranceExp:"2026-03-10",fcExp:"2025-05-22",permitExp:"2026-01-08",pollutionExp:"2025-09-15",emiStatus:"Paid",fuelPercent:45,route:"Trichy → Puducherry",income:"₹55,200",expense:"₹20,100",color:"#FACC15",claims:[{date:"2024-10-22",type:"Third-party",status:"Settled",amt:"₹8,500"}],services:[{date:"2024-11-30",type:"Brake System",cost:"₹6,700"}]},
+  {id:8,name:"Sammy 08",regNo:"TN-08-OP-3456",driver:"Durai S.",status:"active",statusLabel:"Active",lastService:"2025-03-01",insuranceExp:"2025-12-15",fcExp:"2025-10-12",permitExp:"2026-03-20",pollutionExp:"2025-11-11",emiStatus:"Paid",fuelPercent:85,route:"Chennai → Salem",income:"₹67,400",expense:"₹28,700",color:"#22C55E",claims:[],services:[{date:"2025-03-01",type:"Full Service",cost:"₹8,900"}]},
+  {id:9,name:"Sammy 09",regNo:"TN-09-QR-6789",driver:"Prasad J.",status:"service",statusLabel:"Claim Pending",lastService:"2025-01-25",insuranceExp:"2025-09-28",fcExp:"2025-07-18",permitExp:"2025-10-05",pollutionExp:"2025-06-14",emiStatus:"Overdue",fuelPercent:20,route:"Coimbatore → Ooty",income:"₹29,800",expense:"₹31,200",color:"#3B82F6",claims:[{date:"2025-02-10",type:"Road Accident",status:"Under Review",amt:"₹1,25,000"}],services:[{date:"2025-01-25",type:"Body Repair (Ongoing)",cost:"₹54,000"}]},
+  {id:10,name:"Sammy 10",regNo:"TN-10-ST-4567",driver:"Ganesh P.",status:"active",statusLabel:"Active",lastService:"2025-02-14",insuranceExp:"2026-02-14",fcExp:"2025-08-08",permitExp:"2026-02-14",pollutionExp:"2026-01-20",emiStatus:"Paid",fuelPercent:75,route:"Trichy → Karur",income:"₹43,600",expense:"₹19,400",color:"#22C55E",claims:[],services:[{date:"2025-02-14",type:"Suspension Check",cost:"₹4,100"}]},
+  {id:11,name:"Sammy 11",regNo:"TN-11-UV-8901",driver:"Suresh N.",status:"active",statusLabel:"Active",lastService:"2025-01-05",insuranceExp:"2025-11-30",fcExp:"2025-09-25",permitExp:"2025-12-10",pollutionExp:"2025-10-05",emiStatus:"Paid",fuelPercent:60,route:"Dindigul → Trichy",income:"₹38,900",expense:"₹17,300",color:"#22C55E",claims:[],services:[{date:"2025-01-05",type:"Engine Tune-up",cost:"₹5,500"}]},
+];
+
+function truckSVG(color='#F97316',scale=1){
+  const w=200*scale,h=90*scale;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 6px 18px ${color}99)">
+    <rect x="2" y="22" width="130" height="52" rx="4" fill="#1E293B"/>
+    <rect x="2" y="22" width="130" height="8" rx="2" fill="#334155"/>
+    <rect x="6" y="26" width="122" height="3" rx="1" fill="rgba(255,255,255,0.07)"/>
+    <line x1="30" y1="22" x2="30" y2="74" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+    <line x1="60" y1="22" x2="60" y2="74" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+    <line x1="90" y1="22" x2="90" y2="74" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+    <rect x="132" y="32" width="58" height="42" rx="4" fill="${color}"/>
+    <rect x="135" y="35" width="50" height="4" rx="1" fill="rgba(255,255,255,0.18)"/>
+    <rect x="155" y="36" width="30" height="20" rx="3" fill="#93C5FD" opacity="0.85"/>
+    <rect x="156" y="37" width="28" height="8" rx="2" fill="rgba(255,255,255,0.2)"/>
+    <rect x="135" y="36" width="16" height="14" rx="2" fill="#93C5FD" opacity="0.7"/>
+    <line x1="152" y1="36" x2="152" y2="74" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+    <rect x="184" y="16" width="5" height="18" rx="2" fill="#374151"/>
+    <rect x="185" y="62" width="13" height="8" rx="1" fill="#1F2937"/>
+    <rect x="186" y="54" width="9" height="6" rx="1" fill="#FEF3C7" opacity="0.9"/>
+    <circle cx="32" cy="76" r="11" fill="#111827"/><circle cx="32" cy="76" r="7" fill="#1F2937"/><circle cx="32" cy="76" r="3.5" fill="#374151"/><circle cx="32" cy="76" r="1.5" fill="${color}"/>
+    <circle cx="100" cy="76" r="11" fill="#111827"/><circle cx="100" cy="76" r="7" fill="#1F2937"/><circle cx="100" cy="76" r="3.5" fill="#374151"/><circle cx="100" cy="76" r="1.5" fill="${color}"/>
+    <circle cx="170" cy="76" r="11" fill="#111827"/><circle cx="170" cy="76" r="7" fill="#1F2937"/><circle cx="170" cy="76" r="3.5" fill="#374151"/><circle cx="170" cy="76" r="1.5" fill="${color}"/>
+    <rect x="10" y="72" width="180" height="5" rx="2" fill="#0F172A"/>
+    <rect x="16" y="52" width="100" height="14" rx="3" fill="${color}22"/>
+    <text x="66" y="63" text-anchor="middle" fill="${color}" font-size="9" font-weight="800" font-family="Poppins,sans-serif" letter-spacing="1">SAMMY KURA</text>
+  </svg>`;
+}
+
+const statusConfig={
+  active:{badge:"badge-active",dot:"🟢"},
+  service:{badge:"badge-service",dot:"🔧"},
+  alert:{badge:"badge-alert",dot:"🔴"},
+  warning:{badge:"badge-warning",dot:"🟡"},
+};
+
+function renderFleet(data,gridId='fleetGrid'){
+  const grid=document.getElementById(gridId);
+  grid.innerHTML='';
+  data.forEach(lorry=>{
+    const sc=statusConfig[lorry.status]||statusConfig.active;
+    const card=document.createElement('div');
+    card.className=`lorry-card status-${lorry.status}`;
+    card.innerHTML=`
+      <div class="card-visual">
+        <div class="truck-svg-wrap">${truckSVG(lorry.color,0.82)}</div>
+        <div class="lorry-reg-overlay">${lorry.regNo}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-top">
+          <div><div class="lorry-name">${lorry.name}</div><div class="lorry-number">${lorry.regNo}</div></div>
+          <span class="status-badge ${sc.badge}">${sc.dot} ${lorry.statusLabel}</span>
+        </div>
+        <div class="driver-row">
+          <div class="driver-avatar">${lorry.driver.split(' ').map(w=>w[0]).join('')}</div>
+          <div>
+            <div class="driver-name">${lorry.driver}</div>
+            <div class="driver-label">👨‍✈️ ${lorry.route}</div>
+          </div>
+        </div>
+        <div class="card-details">
+          <div class="detail-item"><span class="detail-label">Insurance Exp</span><span class="detail-value ${dateColor(lorry.insuranceExp)}">${fmtDate(lorry.insuranceExp)}</span></div>
+          <div class="detail-item"><span class="detail-label">FC Renewal</span><span class="detail-value ${dateColor(lorry.fcExp)}">${fmtDate(lorry.fcExp)}</span></div>
+          <div class="detail-item"><span class="detail-label">Permit Expiry</span><span class="detail-value ${dateColor(lorry.permitExp)}">${fmtDate(lorry.permitExp)}</span></div>
+          <div class="detail-item"><span class="detail-label">EMI Status</span><span class="detail-value ${lorry.emiStatus==='Paid'?'green':lorry.emiStatus==='Pending'?'yellow':'red'}">${lorry.emiStatus==='Paid'?'✅':'⚠️'} ${lorry.emiStatus}</span></div>
+        </div>
+        <div class="card-footer">
+          <div class="fuel-bar-wrap">
+            <div class="fuel-label"><span>⛽ Fuel</span><span>${lorry.fuelPercent}%</span></div>
+            <div class="fuel-bar"><div class="fuel-fill" style="width:0%;background:${fuelColor(lorry.fuelPercent)}"></div></div>
+          </div>
+          <button class="view-btn" onclick="event.stopPropagation();openPanel(${lorry.id})">View →</button>
+        </div>
+      </div>`;
+    card.onclick=()=>openPanel(lorry.id);
+    grid.appendChild(card);
+    setTimeout(()=>card.querySelector('.fuel-fill').style.width=lorry.fuelPercent+'%',120);
+  });
+}
+
+function filterFleet(type,btn){
+  document.querySelectorAll('#section-dashboard .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const map={active:['active'],service:['service'],alert:['alert','warning']};
+  renderFleet(type==='all'?lorries:lorries.filter(l=>(map[type]||[type]).includes(l.status)));
+}
+function filterFleet2(type,btn){
+  document.querySelectorAll('#section-fleet .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const map={active:['active'],service:['service'],alert:['alert','warning']};
+  renderFleet(type==='all'?lorries:lorries.filter(l=>(map[type]||[type]).includes(l.status)),'fleetGrid2');
+}
+
+function fmtDate(d){if(!d)return 'N/A';return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
+function daysUntil(d){return Math.ceil((new Date(d)-new Date())/(1000*60*60*24))}
+function dateColor(d){const days=daysUntil(d);return days<0?'red':days<30?'yellow':'green'}
+function fuelColor(pct){return pct<25?'#EF4444':pct<50?'#FACC15':'#F97316'}
+
+/* ── Panel ── */
+function openPanel(id){
+  const lorry=lorries.find(l=>l.id===id);if(!lorry)return;
+  document.getElementById('panelTitle').textContent=lorry.name+' — '+lorry.regNo;
+  document.getElementById('panelSub').textContent='👨‍✈️ '+lorry.driver+'  |  🛣️ '+lorry.route;
+  document.getElementById('panelTruckVisual').innerHTML=truckSVG(lorry.color,0.85);
+  document.getElementById('detailPanel').dataset.lorryId=id;
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.ptab').classList.add('active');
+  renderDetailTab('overview',lorry);
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('detailPanel').classList.remove('open');
+}
+function switchDetailTab(tab,btn){
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const id=parseInt(document.getElementById('detailPanel').dataset.lorryId);
+  renderDetailTab(tab,lorries.find(l=>l.id===id));
+}
+function renderDetailTab(tab,lorry){
+  const body=document.getElementById('panelBody');
+  if(tab==='overview'){
+    body.innerHTML=`
+      <div class="section-title">📋 Lorry Overview</div>
+      <div class="info-grid">
+        <div class="info-box"><div class="info-box-label">Status</div><div class="info-box-value">${lorry.statusLabel}</div></div>
+        <div class="info-box"><div class="info-box-label">EMI</div><div class="info-box-value ${lorry.emiStatus==='Paid'?'green':lorry.emiStatus==='Pending'?'yellow':'red'}">${lorry.emiStatus}</div></div>
+        <div class="info-box"><div class="info-box-label">Last Service</div><div class="info-box-value">${fmtDate(lorry.lastService)}</div></div>
+        <div class="info-box"><div class="info-box-label">Fuel Level</div><div class="info-box-value ${lorry.fuelPercent<25?'red':lorry.fuelPercent<50?'yellow':'green'}">${lorry.fuelPercent}%</div></div>
+        <div class="info-box"><div class="info-box-label">Monthly Income</div><div class="info-box-value green">${lorry.income}</div></div>
+        <div class="info-box"><div class="info-box-label">Monthly Expense</div><div class="info-box-value red">${lorry.expense}</div></div>
+      </div>
+      <div class="section-title mt-16">🗺️ Route &amp; Driver</div>
+      <div class="info-grid">
+        <div class="info-box" style="grid-column:1/-1"><div class="info-box-label">Current Route</div><div class="info-box-value" style="font-size:16px">🛣️ ${lorry.route}</div></div>
+        <div class="info-box"><div class="info-box-label">Driver</div><div class="info-box-value">${lorry.driver}</div></div>
+        <div class="info-box"><div class="info-box-label">Registration</div><div class="info-box-value">${lorry.regNo}</div></div>
+      </div>
+      ${lorry.claims.length?`<div class="section-title mt-16">⚠️ Claims (${lorry.claims.length})</div>${lorry.claims.map(c=>`<div class="doc-item"><div class="doc-info"><div class="doc-icon" style="background:#FEF2F2">⚠️</div><div><div class="doc-name">${c.type} — ${c.amt}</div><div class="doc-expiry">Date: ${fmtDate(c.date)}</div></div></div><span class="doc-status ${c.status==='Settled'?'valid':'warning'}">${c.status}</span></div>`).join('')}`:''}`;
+  }else if(tab==='documents'){
+    const docs=[
+      {name:"Insurance",icon:"🛡️",expiry:lorry.insuranceExp,bg:"#EFF6FF"},
+      {name:"FC Certificate",icon:"📋",expiry:lorry.fcExp,bg:"#F0FDF4"},
+      {name:"Permit",icon:"📜",expiry:lorry.permitExp,bg:"#FFF7ED"},
+      {name:"Pollution Cert.",icon:"🌿",expiry:lorry.pollutionExp,bg:"#F0FDF4"},
+    ];
+    body.innerHTML=`<div class="section-title">📁 Documents &amp; Renewals</div>${docs.map(doc=>{
+      const days=daysUntil(doc.expiry);
+      const sc=days<0?'expired':days<30?'warning':'valid';
+      const st=days<0?`Expired ${Math.abs(days)}d ago`:days<30?`Expiring in ${days}d`:`Valid · ${days}d left`;
+      return `<div class="doc-item"><div class="doc-info"><div class="doc-icon" style="background:${doc.bg}">${doc.icon}</div><div><div class="doc-name">${doc.name}</div><div class="doc-expiry">Expiry: ${fmtDate(doc.expiry)}</div></div></div><span class="doc-status ${sc}">${st}</span></div>`;
+    }).join('')}`;
+  }else if(tab==='service'){
+    body.innerHTML=`<div class="section-title">🔧 Service History</div>${lorry.services.map(s=>`<div class="doc-item"><div class="doc-info"><div class="doc-icon" style="background:#FFF7ED">🔧</div><div><div class="doc-name">${s.type}</div><div class="doc-expiry">Date: ${fmtDate(s.date)}</div></div></div><span class="doc-status valid">${s.cost}</span></div>`).join('')}
+    <div class="section-title mt-20">📅 Next Service Reminder</div>
+    <div style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border-radius:12px;padding:14px 16px;border:1px solid #FDE68A">
+      <div style="font-size:13px;font-weight:700;color:#92400E">⚙️ Recommended next service in 30 days</div>
+      <div style="font-size:12px;color:#B45309;margin-top:5px">Based on last service: ${fmtDate(lorry.lastService)}</div>
+      <button onclick="toast('Reminder set! ✅','success')" style="margin-top:10px;background:#F97316;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-family:Poppins,sans-serif;font-size:12px;font-weight:700;cursor:pointer">Set Reminder 🔔</button>
+    </div>`;
+  }else if(tab==='finance'){
+    body.innerHTML=`<div class="section-title">💰 Monthly Finance</div>
+    <div class="info-grid">
+      <div class="info-box"><div class="info-box-label">Income</div><div class="info-box-value green" style="font-size:18px">${lorry.income}</div></div>
+      <div class="info-box"><div class="info-box-label">Expense</div><div class="info-box-value red" style="font-size:18px">${lorry.expense}</div></div>
+    </div>
+    <div class="section-title mt-20">📊 Expense Breakdown</div>
+    ${[{label:"Fuel",amt:"₹8,400",pct:60,color:"#F97316"},{label:"Service",amt:"₹4,200",pct:30,color:"#3B82F6"},{label:"Toll",amt:"₹2,100",pct:15,color:"#22C55E"},{label:"Driver",amt:"₹6,500",pct:46,color:"#8B5CF6"},{label:"EMI",amt:"₹12,000",pct:85,color:"#EF4444"}].map(e=>`<div class="fin-bar-row"><div class="fin-bar-label">${e.label}</div><div class="fin-bar-outer"><div class="fin-bar-fill" style="width:${e.pct}%;background:${e.color}"></div></div><div class="fin-bar-val">${e.amt}</div></div>`).join('')}
+    <div class="section-title mt-20">🧾 EMI Status</div>
+    <div style="background:${lorry.emiStatus==='Paid'?'#F0FDF4':lorry.emiStatus==='Pending'?'#FEFCE8':'#FEF2F2'};border-radius:12px;padding:14px 16px">
+      <div style="font-size:16px;font-weight:800;color:${lorry.emiStatus==='Paid'?'#15803D':lorry.emiStatus==='Pending'?'#92400E':'#B91C1C'}">${lorry.emiStatus==='Paid'?'✅ EMI Paid':lorry.emiStatus==='Pending'?'⚠️ EMI Pending':'🔴 EMI Overdue!'}</div>
+      ${lorry.emiStatus!=='Paid'?`<button onclick="toast('Payment recorded! ✅','success')" style="margin-top:10px;background:#22C55E;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-family:Poppins,sans-serif;font-size:12px;font-weight:700;cursor:pointer">Mark as Paid ✅</button>`:''}
+    </div>`;
+  }
+}
+
+/* ── Notifications ── */
+function toggleNotif(){document.getElementById('notifDropdown').classList.toggle('show')}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.notif-btn')&&!e.target.closest('.notif-dropdown'))
+    document.getElementById('notifDropdown').classList.remove('show');
+});
+
+/* ── Billing State ── */
+let invoices=JSON.parse(localStorage.getItem('sk_invoices')||'[]');
+let nextInvId=parseInt(localStorage.getItem('sk_nextInvId')||'1');
+
+let products=JSON.parse(localStorage.getItem('sk_products')||'null')||[
+  {id:1,name:"Sengal",gst_percent:5,unit:"Ton",default_rate:1200,hsn_code:"2517",icon:"🪨"},
+  {id:2,name:"Sand",gst_percent:5,unit:"Ton",default_rate:800,hsn_code:"2505",icon:"🏖️"},
+  {id:3,name:"M-Sand",gst_percent:5,unit:"Ton",default_rate:950,hsn_code:"2505",icon:"🏗️"},
+  {id:4,name:"Gravel / Jalli",gst_percent:5,unit:"Ton",default_rate:900,hsn_code:"2517",icon:"🪨"},
+  {id:5,name:"Blue Metal",gst_percent:5,unit:"Ton",default_rate:1100,hsn_code:"2517",icon:"💎"},
+  {id:6,name:"Quarry Dust",gst_percent:5,unit:"Ton",default_rate:600,hsn_code:"2517",icon:"💨"},
+  {id:7,name:"Cement Bags",gst_percent:28,unit:"Bag",default_rate:420,hsn_code:"2523",icon:"🧱"},
+  {id:8,name:"Steel / TMT",gst_percent:18,unit:"Ton",default_rate:55000,hsn_code:"7214",icon:"⚙️"},
+  {id:9,name:"Bricks",gst_percent:5,unit:"1000 Nos",default_rate:7500,hsn_code:"6901",icon:"🧱"},
+  {id:10,name:"Granite Slabs",gst_percent:18,unit:"Sq.ft",default_rate:85,hsn_code:"6802",icon:"🔲"},
+  {id:11,name:"Rice",gst_percent:0,unit:"Ton",default_rate:35000,hsn_code:"1006",icon:"🌾"},
+  {id:12,name:"Freight Charges",gst_percent:18,unit:"Trip",default_rate:5000,hsn_code:"9965",icon:"🚚"},
+  {id:13,name:"Diesel Transport",gst_percent:0,unit:"Litre",default_rate:92,hsn_code:"2710",icon:"⛽"},
+];
+let nextProductId=parseInt(localStorage.getItem('sk_nextProdId')||String(products.length+1));
+function saveProducts(){localStorage.setItem('sk_products',JSON.stringify(products));localStorage.setItem('sk_nextProdId',nextProductId.toString())}
+
+let gstCompanies=JSON.parse(localStorage.getItem('sk_gst_companies')||'null')||[
+  {id:1,company:"Sri Murugan Traders",gst:"29AABCU9603R1ZM",state:"Karnataka",stateCode:"29",address:"Bengaluru, Karnataka"},
+  {id:2,company:"SK Blue Metals",gst:"33ABCDE1234F1Z5",state:"Tamil Nadu",stateCode:"33",address:"Trichy, Tamil Nadu"},
+  {id:3,company:"ABC Steels",gst:"33ABCDE1234F189ZA",state:"Tamil Nadu",stateCode:"33",address:"Chennai, Tamil Nadu"},
+];
+let nextGstCoId=parseInt(localStorage.getItem('sk_nextGstCoId')||'4');
+function saveGstCompanies(){localStorage.setItem('sk_gst_companies',JSON.stringify(gstCompanies));localStorage.setItem('sk_nextGstCoId',nextGstCoId.toString())}
+
+let rowCount=0,currentPage=1,deleteTargetId=null,searchTimer=null,currentInvoiceId=null;
+function saveToStorage(){localStorage.setItem('sk_invoices',JSON.stringify(invoices));localStorage.setItem('sk_nextInvId',nextInvId.toString())}
+
+/* ── Billing Tabs ── */
+function billingTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('btab-'+name).classList.add('active');
+  document.getElementById('bpane-'+name).classList.add('active');
+  if(name==='list')loadInvoiceList();
+  if(name==='products')renderProductMaster();
+  if(name==='gstco')renderGstCompanies();
+  if(name==='create')syncSellerGstDropdown();
+}
+
+/* ── Product Master ── */
+function renderProductMaster(){
+  const grid=document.getElementById('pmGrid'),cnt=document.getElementById('pmCount');
+  if(!grid)return;
+  if(cnt)cnt.textContent=products.length+' Products';
+  grid.innerHTML=products.map(p=>`
+    <div class="pm-card">
+      <div class="pm-icon">${p.icon||'📦'}</div>
+      <div class="pm-info">
+        <div class="pm-name">${p.name}</div>
+        <div class="pm-meta">HSN: ${p.hsn_code||'—'} | Unit: ${p.unit||'—'}</div>
+        <div class="pm-rate">₹${fmtNum(p.default_rate)} <span class="pm-gst-tag">GST ${p.gst_percent}%</span></div>
+      </div>
+      <div class="pm-actions">
+        <button class="pm-edit-btn" onclick="editProduct(${p.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="pm-edit-btn" style="color:var(--danger)" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`).join('');
+}
+function togglePmForm(show){
+  const form=document.getElementById('pmForm');
+  if(show===false){form.style.display='none';return;}
+  if(form.style.display==='none'||!form.style.display){
+    form.style.display='block';
+    document.getElementById('pmFormTitle').textContent='Add New Product';
+    document.getElementById('pmEditId').value='';
+    ['pmName','pmRate','pmUnit','pmHsn','pmIcon'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pmGst').value='0';
+  }else{form.style.display='none'}
+}
+function editProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  document.getElementById('pmForm').style.display='block';
+  document.getElementById('pmFormTitle').textContent='Edit Product';
+  document.getElementById('pmEditId').value=id;
+  document.getElementById('pmName').value=p.name;
+  document.getElementById('pmRate').value=p.default_rate;
+  document.getElementById('pmGst').value=p.gst_percent;
+  document.getElementById('pmUnit').value=p.unit||'';
+  document.getElementById('pmHsn').value=p.hsn_code||'';
+  document.getElementById('pmIcon').value=p.icon||'';
+  document.getElementById('pmForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function saveProduct(){
+  const name=document.getElementById('pmName').value.trim();
+  const rate=parseFloat(document.getElementById('pmRate').value)||0;
+  const gst=parseInt(document.getElementById('pmGst').value)||0;
+  if(!name){toast('Product name is required','error');return}
+  if(rate<=0){toast('Rate must be greater than 0','error');return}
+  const editId=document.getElementById('pmEditId').value;
+  const prod={id:editId?parseInt(editId):nextProductId++,name,default_rate:rate,gst_percent:gst,
+    unit:document.getElementById('pmUnit').value.trim()||'Ton',
+    hsn_code:document.getElementById('pmHsn').value.trim()||'',
+    icon:document.getElementById('pmIcon').value.trim()||'📦'};
+  if(editId){const idx=products.findIndex(p=>p.id===parseInt(editId));if(idx>=0)products[idx]=prod}
+  else products.push(prod);
+  saveProducts();renderProductMaster();togglePmForm(false);
+  toast(editId?'Product updated! ✅':'Product added! ✅','success');
+}
+function deleteProduct(id){
+  if(products.length<=1){toast('At least one product required','error');return}
+  products=products.filter(p=>p.id!==id);saveProducts();renderProductMaster();toast('Product deleted','info');
+}
+
+/* ── Seller GST ── */
+function syncSellerGstDropdown(){
+  const sel=document.getElementById('sellerGstSelect');if(!sel)return;
+  const stored=localStorage.getItem('sk_gst_companies');
+  if(stored){try{gstCompanies=JSON.parse(stored)}catch(e){}}
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Select GST Company --</option>'+
+    gstCompanies.map(c=>`<option value="${c.id}">${c.company} — ${c.gst}</option>`).join('');
+  if(cur&&gstCompanies.find(c=>String(c.id)===cur))sel.value=cur;
+  else if(gstCompanies.length>0)sel.value=gstCompanies[0].id;
+  onSellerGstChange();
+}
+function populateSellerGstDropdown(){syncSellerGstDropdown()}
+function onSellerGstChange(){
+  const sel=document.getElementById('sellerGstSelect');
+  const id=parseInt(sel.value);
+  const co=gstCompanies.find(c=>c.id===id);
+  const info=document.getElementById('sellerGstInfo');
+  if(co){
+    document.getElementById('sgbCompanyName').textContent=co.company;
+    document.getElementById('sgbState').textContent=co.address||co.state;
+    document.getElementById('sgbGstNum').textContent='GSTIN: '+co.gst;
+    document.getElementById('sgbStateCode').textContent='State Code: '+co.stateCode;
+    info.style.display='flex';
+  }else{info.style.display='none'}
+}
+function getSelectedGstCompany(){
+  const sel=document.getElementById('sellerGstSelect');
+  const id=parseInt(sel?.value);
+  return gstCompanies.find(c=>c.id===id)||null;
+}
+
+/* ── GST Company Master ── */
+function renderGstCompanies(){
+  const grid=document.getElementById('gcoGrid'),cnt=document.getElementById('gcoCount');
+  if(!grid)return;
+  if(cnt)cnt.textContent=gstCompanies.length+' Companies';
+  grid.innerHTML=gstCompanies.map(c=>`
+    <div class="gco-card">
+      <div class="gco-icon">🏢</div>
+      <div class="gco-info">
+        <div class="gco-name">${c.company}</div>
+        <div class="gco-gst">${c.gst}</div>
+        <div class="gco-meta">${c.address||c.state}</div>
+        <span class="gco-state-badge">📍 ${c.state} · Code: ${c.stateCode}</span>
+      </div>
+      <div class="pm-actions">
+        <button class="pm-edit-btn" onclick="editGstCompany(${c.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="pm-edit-btn" style="color:var(--danger)" onclick="deleteGstCompany(${c.id})"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`).join('');
+}
+function toggleGcoForm(show){
+  const form=document.getElementById('gcoForm');
+  if(show===false){form.style.display='none';return}
+  if(form.style.display==='none'||!form.style.display){
+    form.style.display='block';
+    document.getElementById('gcoFormTitle').textContent='Add GST Company';
+    document.getElementById('gcoEditId').value='';
+    ['gcoName','gcoGst','gcoState','gcoStateCode','gcoAddress'].forEach(id=>document.getElementById(id).value='');
+  }else{form.style.display='none'}
+}
+function editGstCompany(id){
+  const c=gstCompanies.find(x=>x.id===id);if(!c)return;
+  document.getElementById('gcoForm').style.display='block';
+  document.getElementById('gcoFormTitle').textContent='Edit GST Company';
+  document.getElementById('gcoEditId').value=id;
+  document.getElementById('gcoName').value=c.company;
+  document.getElementById('gcoGst').value=c.gst;
+  document.getElementById('gcoState').value=c.state;
+  document.getElementById('gcoStateCode').value=c.stateCode;
+  document.getElementById('gcoAddress').value=c.address||'';
+  document.getElementById('gcoForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function saveGstCompany(){
+  const name=document.getElementById('gcoName').value.trim();
+  const gst=document.getElementById('gcoGst').value.trim().toUpperCase();
+  const state=document.getElementById('gcoState').value.trim();
+  const stateCode=document.getElementById('gcoStateCode').value.trim();
+  if(!name){toast('Company name required','error');return}
+  if(!gst||gst.length<10){toast('Valid GSTIN required','error');return}
+  if(!state||!stateCode){toast('State and State Code required','error');return}
+  const editId=document.getElementById('gcoEditId').value;
+  const co={id:editId?parseInt(editId):nextGstCoId++,company:name,gst,state,stateCode,
+    address:document.getElementById('gcoAddress').value.trim()||state};
+  if(editId){const idx=gstCompanies.findIndex(c=>c.id===parseInt(editId));if(idx>=0)gstCompanies[idx]=co}
+  else gstCompanies.push(co);
+  saveGstCompanies();populateSellerGstDropdown();renderGstCompanies();toggleGcoForm(false);
+  toast(editId?'Company updated! ✅':'Company added! ✅','success');
+}
+function deleteGstCompany(id){
+  if(gstCompanies.length<=1){toast('At least one GST company required','error');return}
+  gstCompanies=gstCompanies.filter(c=>c.id!==id);
+  saveGstCompanies();populateSellerGstDropdown();renderGstCompanies();toast('Company deleted','info');
+}
+
+/* ── Invoice Form ── */
+function setTodayDate(){
+  const today=new Date().toISOString().split('T')[0];
+  const el=id=>document.getElementById(id);
+  if(el('invoiceDate'))el('invoiceDate').value=today;
+  if(el('filterFrom'))el('filterFrom').value=today.slice(0,7)+'-01';
+  if(el('filterTo'))el('filterTo').value=today;
+}
+function generateInvoiceNumber(){
+  const now=new Date();
+  const yy=String(now.getFullYear()).slice(2);
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const num=String(nextInvId).padStart(4,'0');
+  const invNo=`INV-${yy}${mm}-${num}`;
+  const el=document.getElementById('invoiceNumber'),disp=document.getElementById('displayInvNum');
+  if(el)el.value=invNo;if(disp)disp.textContent=invNo;
+  return invNo;
+}
+function addItemRow(data={}){
+  rowCount++;const rn=rowCount;
+  const tbody=document.getElementById('itemsBody');
+  const mobileWrap=document.getElementById('mobileItemsWrap');
+  if(!tbody)return;
+  const opts=products.map(p=>`<option value="${p.id}" data-gst="${p.gst_percent}" data-unit="${p.unit}" data-rate="${p.default_rate}" data-hsn="${p.hsn_code||''}" ${data.product_id==p.id?'selected':''}>${p.name}</option>`).join('');
+  const tr=document.createElement('tr');tr.id=`row-${rn}`;
+  tr.innerHTML=`
+    <td style="font-weight:700;color:var(--muted);text-align:center;width:28px">${rn}</td>
+    <td><select class="inp product-sel" id="prod-${rn}" onchange="onProductChange(${rn})"><option value="">-- Select --</option>${opts}</select></td>
+    <td><input type="text" class="inp inp-readonly" id="hsn-${rn}" value="${data.hsn_code||''}" placeholder="—" style="width:72px" readonly></td>
+    <td><input type="text" class="inp inp-readonly" id="unit-${rn}" value="${data.unit||''}" placeholder="—" style="width:64px" readonly></td>
+    <td><input type="number" class="inp" id="qty-${rn}" value="${data.quantity||''}" placeholder="0" min="0" step="0.001" oninput="calcRow(${rn})" style="width:70px"></td>
+    <td><input type="number" class="inp" id="rate-${rn}" value="${data.rate||''}" placeholder="0.00" min="0" step="0.01" oninput="calcRow(${rn})" style="width:80px"></td>
+    <td class="td-num"><span id="amt-${rn}">0.00</span></td>
+    <td style="text-align:center">
+      <span class="gst-badge" id="gstbadge-${rn}">${data.gst_percent||0}%</span>
+      <div style="font-size:9px;color:var(--success);font-weight:700;margin-top:1px">AUTO</div>
+      <input type="hidden" id="gst-${rn}" value="${data.gst_percent||0}">
+    </td>
+    <td class="td-num"><span id="gstamt-${rn}">0.00</span></td>
+    <td class="td-num" style="font-size:13px;font-weight:800;color:var(--orange)"><span id="rowttl-${rn}">0.00</span></td>
+    <td><button type="button" class="delete-row-btn" onclick="deleteRow(${rn})"><i class="fa-solid fa-trash-can"></i></button></td>`;
+  tbody.appendChild(tr);
+  if(mobileWrap){
+    const card=document.createElement('div');card.className='product-card-row';card.id=`mrow-${rn}`;
+    card.innerHTML=`
+      <div class="pcr-header">
+        <span class="pcr-num">Row ${rn}</span>
+        <button type="button" class="pcr-del" onclick="deleteRow(${rn})"><i class="fa-solid fa-trash-can"></i> Remove</button>
+      </div>
+      <div class="pcr-fields">
+        <div class="pcr-field" style="grid-column:1/-1">
+          <label>Product / Material</label>
+          <select class="inp" id="mprod-${rn}" onchange="syncMobileProd(${rn},this)"><option value="">-- Select --</option>${opts}</select>
+        </div>
+        <div class="pcr-field"><label>Quantity</label><input type="number" class="inp" id="mqty-${rn}" value="${data.quantity||''}" placeholder="0" min="0" step="0.001" oninput="syncQtyFromMobile(${rn},this)"></div>
+        <div class="pcr-field"><label>Rate (₹)</label><input type="number" class="inp" id="mrate-${rn}" value="${data.rate||''}" placeholder="auto" oninput="syncRateFromMobile(${rn},this)"></div>
+        <div class="pcr-field"><label>GST % <span class="inp-auto-tag"><i class="fa-solid fa-bolt" style="font-size:8px"></i> AUTO</span></label><input type="text" class="inp inp-readonly" id="mgstdisp-${rn}" value="${data.gst_percent?data.gst_percent+'%':'—'}" readonly></div>
+        <div class="pcr-field"><label>Unit</label><input type="text" class="inp inp-readonly" id="munit2-${rn}" value="${data.unit||''}" readonly placeholder="—"></div>
+      </div>
+      <div class="pcr-totals">
+        <div class="pcr-total-item"><div class="lbl">Subtotal</div><div class="val" id="mamt-${rn}">0.00</div></div>
+        <div class="pcr-total-item"><div class="lbl">GST Amt</div><div class="val" id="mgstamt-${rn}">0.00</div></div>
+        <div class="pcr-total-item grand"><div class="lbl">Row Total</div><div class="val" id="mrowttl-${rn}">0.00</div></div>
+      </div>`;
+    mobileWrap.appendChild(card);
+    if(data.product_id){const ms=card.querySelector(`#mprod-${rn}`);if(ms)ms.value=data.product_id}
+  }
+  if(data.product_id)onProductChange(rn,data);
+  if(data.quantity)calcRow(rn);
+}
+function syncMobileProd(rn,sel){const d=document.getElementById(`prod-${rn}`);if(d){d.value=sel.value;onProductChange(rn)}}
+function syncQtyFromMobile(rn,inp){const d=document.getElementById(`qty-${rn}`);if(d){d.value=inp.value;calcRow(rn)}}
+function syncRateFromMobile(rn,inp){const d=document.getElementById(`rate-${rn}`);if(d){d.value=inp.value;calcRow(rn)}}
+function onProductChange(rn,prefill=null){
+  const sel=document.getElementById(`prod-${rn}`);const opt=sel?.selectedOptions[0];
+  if(!opt||!opt.value)return;
+  const gst=opt.dataset.gst||0,unit=opt.dataset.unit||'',rate=opt.dataset.rate||0,hsn=opt.dataset.hsn||'';
+  const g=id=>document.getElementById(id);
+  if(g(`gst-${rn}`))g(`gst-${rn}`).value=gst;
+  if(g(`gstbadge-${rn}`))g(`gstbadge-${rn}`).textContent=gst+'%';
+  if(g(`unit-${rn}`))g(`unit-${rn}`).value=unit;
+  if(g(`hsn-${rn}`))g(`hsn-${rn}`).value=hsn;
+  if(!prefill&&g(`rate-${rn}`))g(`rate-${rn}`).value=rate;
+  if(g(`mgstdisp-${rn}`))g(`mgstdisp-${rn}`).value=gst+'%';
+  if(g(`munit2-${rn}`))g(`munit2-${rn}`).value=unit;
+  if(g(`mprod-${rn}`))g(`mprod-${rn}`).value=opt.value;
+  if(!prefill&&g(`mrate-${rn}`))g(`mrate-${rn}`).value=rate;
+  calcRow(rn);
+}
+function calcRow(rn){
+  const g=id=>document.getElementById(id);
+  const qty=parseFloat(g(`qty-${rn}`)?.value)||0;
+  const rate=parseFloat(g(`rate-${rn}`)?.value)||0;
+  const gst=parseFloat(g(`gst-${rn}`)?.value)||0;
+  const amt=qty*rate,gstA=amt*(gst/100),ttl=amt+gstA;
+  if(g(`amt-${rn}`))g(`amt-${rn}`).textContent=fmtMoney(amt);
+  if(g(`gstamt-${rn}`))g(`gstamt-${rn}`).textContent=fmtMoney(gstA);
+  if(g(`rowttl-${rn}`))g(`rowttl-${rn}`).textContent=fmtMoney(ttl);
+  if(g(`mamt-${rn}`))g(`mamt-${rn}`).textContent=fmtMoney(amt);
+  if(g(`mgstamt-${rn}`))g(`mgstamt-${rn}`).textContent=fmtMoney(gstA);
+  if(g(`mrowttl-${rn}`))g(`mrowttl-${rn}`).textContent=fmtMoney(ttl);
+  recalcTotals();
+}
+function deleteRow(rn){
+  const rows=document.querySelectorAll('#itemsBody tr');
+  const mrows=document.querySelectorAll('#mobileItemsWrap .product-card-row');
+  if(rows.length<=1&&mrows.length<=1){toast('At least one product row required','error');return}
+  document.getElementById(`row-${rn}`)?.remove();
+  document.getElementById(`mrow-${rn}`)?.remove();
+  recalcTotals();
+}
+function recalcTotals(){
+  let subtotal=0,totalGst=0;
+  document.querySelectorAll('#itemsBody tr').forEach(tr=>{
+    const id=tr.id.replace('row-','');
+    const qty=parseFloat(document.getElementById(`qty-${id}`)?.value)||0;
+    const rate=parseFloat(document.getElementById(`rate-${id}`)?.value)||0;
+    const gst=parseFloat(document.getElementById(`gst-${id}`)?.value)||0;
+    const amt=qty*rate;subtotal+=amt;totalGst+=amt*(gst/100);
+  });
+  const grand=subtotal+totalGst,cgst=totalGst/2,sgst=totalGst/2;
+  const paid=parseFloat(document.getElementById('paidAmount')?.value)||0;
+  const balance=grand-paid;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent='₹ '+fmtMoney(v)};
+  set('tSubtotal',subtotal);set('tGst',totalGst);set('tCgst',cgst);set('tSgst',sgst);
+  set('tGrand',grand);set('tPaid',paid);set('tBalance',balance);
+  const balEl=document.getElementById('tBalance');
+  if(balEl)balEl.style.color=balance>0?'var(--danger)':'var(--success)';
+}
+function fmtMoney(n){return Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtNum(n){return Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
+
+function collectFormData(){
+  const items=[];let valid=true;
+  document.querySelectorAll('#itemsBody tr').forEach(tr=>{
+    const id=tr.id.replace('row-','');
+    const sel=document.getElementById(`prod-${id}`);const opt=sel?.selectedOptions[0];
+    const qty=parseFloat(document.getElementById(`qty-${id}`)?.value)||0;
+    const rt=parseFloat(document.getElementById(`rate-${id}`)?.value)||0;
+    if(!opt?.value||qty<=0||rt<=0){valid=false;return}
+    items.push({product_id:opt.value,product_name:opt.text,hsn_code:document.getElementById(`hsn-${id}`)?.value||'',
+      quantity:qty,unit:document.getElementById(`unit-${id}`)?.value||'Ton',rate:rt,
+      gst_percent:parseFloat(document.getElementById(`gst-${id}`)?.value)||0});
+  });
+  return{
+    id:document.getElementById('invoiceId')?.value||null,
+    invoice_number:document.getElementById('invoiceNumber')?.value,
+    invoice_date:document.getElementById('invoiceDate')?.value,
+    customer_name:document.getElementById('customerName')?.value.trim(),
+    customer_mobile:document.getElementById('customerMobile')?.value.trim(),
+    customer_address:document.getElementById('customerAddress')?.value.trim(),
+    customer_gst:document.getElementById('customerGst')?.value.trim().toUpperCase(),
+    vehicle_number:document.getElementById('vehicleNumber')?.value.trim().toUpperCase(),
+    driver_name:document.getElementById('driverName')?.value.trim(),
+    payment_method:document.getElementById('paymentMethod')?.value,
+    status:document.getElementById('invoiceStatus')?.value,
+    paid_amount:parseFloat(document.getElementById('paidAmount')?.value)||0,
+    notes:document.getElementById('invoiceNotes')?.value.trim(),
+    items,_itemsValid:valid
+  };
+}
+function validateForm(data){
+  if(!data.invoice_number){toast('Invoice number missing','error');return false}
+  if(!data.invoice_date){toast('Invoice date required','error');return false}
+  if(!data.customer_name){toast('Customer name required','error');return false}
+  if(!data.customer_mobile){toast('Customer mobile required','error');return false}
+  if(!data.items.length||!data._itemsValid){toast('Please fill all product rows completely','error');return false}
+  return true;
+}
+function saveInvoice(){
+  const data=collectFormData();if(!validateForm(data))return;
+  const grandTotal=data.items.reduce((s,it)=>{const a=it.quantity*it.rate;return s+a+a*(it.gst_percent/100)},0);
+  const subtotal=data.items.reduce((s,it)=>s+it.quantity*it.rate,0);
+  const gstTotal=grandTotal-subtotal;
+  const inv={
+    id:data.id?parseInt(data.id):nextInvId++,
+    invoice_number:data.invoice_number,invoice_date:data.invoice_date,
+    customer_name:data.customer_name,customer_mobile:data.customer_mobile,
+    customer_address:data.customer_address,customer_gst:data.customer_gst,
+    vehicle_number:data.vehicle_number,driver_name:data.driver_name,
+    payment_method:data.payment_method,status:data.status,
+    paid_amount:data.paid_amount,notes:data.notes,items:data.items,
+    subtotal,gst_total:gstTotal,grand_total:grandTotal,
+    balance_amount:grandTotal-data.paid_amount,
+    created_at:new Date().toISOString(),seller_gst_company:getSelectedGstCompany()||{}
+  };
+  if(data.id){const idx=invoices.findIndex(i=>i.id===parseInt(data.id));if(idx>=0)invoices[idx]=inv;else invoices.unshift(inv)}
+  else invoices.unshift(inv);
+  saveToStorage();document.getElementById('invoiceId').value=inv.id;currentInvoiceId=inv.id;
+  toast('Invoice saved! 🎉','success');loadStats();
+}
+
+/* ── Print / PDF ── */
+function generatePrintHTML(inv){
+  const seller=inv.seller_gst_company||{};
+  const rows=inv.items.map((it,i)=>{
+    const amt=it.quantity*it.rate,gstA=amt*(it.gst_percent/100);
+    const rowBg=i%2===0?'#fff':'#fafbfc';
+    return `<tr style="background:${rowBg}">
+      <td style="text-align:center;font-weight:700;color:#64748b">${i+1}</td>
+      <td style="font-weight:600">${it.product_name}</td>
+      <td style="text-align:center;font-family:monospace">${it.hsn_code||'—'}</td>
+      <td style="text-align:center">${it.unit}</td>
+      <td style="text-align:center;font-weight:700">${it.quantity}</td>
+      <td style="text-align:right;font-family:monospace">₹${it.rate.toFixed(2)}</td>
+      <td style="text-align:right;font-family:monospace">₹${amt.toFixed(2)}</td>
+      <td style="text-align:center;font-weight:700;color:#F97316">${it.gst_percent}%</td>
+      <td style="text-align:right;font-family:monospace">₹${gstA.toFixed(2)}</td>
+      <td style="text-align:right;font-family:monospace;font-weight:800;color:#0F172A">₹${(amt+gstA).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  const genDt=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  const statusColor=inv.status==='Paid'?'#16a34a':inv.status==='Unpaid'?'#dc2626':inv.status==='Partial'?'#b45309':'#64748b';
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Invoice ${inv.invoice_number} — Sammy Kura</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:11px;color:#1e293b;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:12mm 14mm 10mm;background:#fff;display:flex;flex-direction:column;}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:10px;padding:16px 20px;margin-bottom:12px;color:#fff;}
+.inv-title{font-size:22px;font-weight:900;color:#F97316;letter-spacing:1px;text-transform:uppercase}
+.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.info-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;}
+.seller-box{border-left:3px solid #F97316;background:#FFF7ED}
+.customer-box{border-left:3px solid #3B82F6;background:#EFF6FF}
+.vehicle-box{border-left:3px solid #22C55E;background:#F0FDF4}
+.info-box-label{font-size:8px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+table{width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden}
+table thead tr{background:#0F172A}
+table thead th{padding:8px;font-size:9px;font-weight:700;text-transform:uppercase;color:#fff;border:none}
+table thead th.right{text-align:right}table thead th.center{text-align:center}
+table tbody td{padding:7px;font-size:10.5px;border-bottom:1px solid #e2e8f0;vertical-align:middle}
+.bottom-section{display:flex;gap:12px;margin-top:10px}
+.notes-col{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px}
+.totals-col{width:220px;flex-shrink:0}
+.totals-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.t-row{display:flex;justify-content:space-between;padding:5px 12px;font-size:10px;border-bottom:1px solid #e2e8f0}
+.t-row.grand{background:linear-gradient(135deg,#0F172A,#1E293B);padding:9px 12px}
+.t-row.grand .t-lbl{color:#94a3b8;font-size:11px;font-weight:700}
+.t-row.grand .t-val{color:#F97316;font-size:14px;font-weight:900;font-family:monospace}
+.t-row.balance .t-val{color:#ef4444}
+.t-row.paid-row .t-val{color:#16a34a}
+.t-lbl{color:#64748b;font-weight:600}.t-val{font-family:monospace;font-weight:700;color:#1e293b}
+.inv-footer{margin-top:auto;padding-top:10px;border-top:1px dashed #cbd5e1;display:flex;justify-content:space-between;align-items:flex-end}
+.sign-line{width:140px;border-bottom:1.5px solid #1e293b;margin:0 auto 4px;padding-top:28px}
+.sign-label{font-size:9px;font-weight:700;color:#64748b;text-align:center;text-transform:uppercase}
+@page{size:A4;margin:0}
+@media print{body{margin:0;padding:0}.page{padding:12mm 14mm 10mm}}
+</style></head><body>
+<div class="page">
+<div class="inv-header">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="width:40px;height:40px;background:rgba(249,115,22,.2);border-radius:8px;display:flex;align-items:center;justify-content:center">🚛</div>
+    <div><div style="font-size:16px;font-weight:800">Sammy Kura</div><div style="font-size:9px;color:#F97316;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fleet Management</div></div>
+  </div>
+  <div style="text-align:right">
+    <div class="inv-title">TAX INVOICE</div>
+    <div style="margin-top:6px;font-size:10px;color:#94a3b8">Invoice: <strong style="color:#fff">${inv.invoice_number}</strong></div>
+    <div style="font-size:10px;color:#94a3b8">Date: <strong style="color:#fff">${formatDate(inv.invoice_date)}</strong></div>
+    <div style="font-size:10px;color:#94a3b8">Status: <strong style="color:${inv.status==='Paid'?'#4ade80':inv.status==='Unpaid'?'#f87171':'#fbbf24'}">${inv.status}</strong></div>
+  </div>
+</div>
+<div class="info-grid">
+  <div class="info-box seller-box">
+    <div class="info-box-label">Billing Company (Seller)</div>
+    <div style="font-size:11px;font-weight:600">${seller.company||'—'}</div>
+    ${seller.address?`<div style="font-size:10px;color:#64748b">${seller.address}</div>`:''}
+    ${seller.gst?`<div style="font-family:monospace;font-size:10px;color:#F97316;margin-top:3px">GSTIN: ${seller.gst}</div>`:''}
+    ${seller.stateCode?`<div style="font-size:10px;color:#64748b">State Code: ${seller.stateCode}</div>`:''}
+  </div>
+  <div class="info-box customer-box">
+    <div class="info-box-label">Bill To (Customer)</div>
+    <div style="font-size:11px;font-weight:600">${inv.customer_name}</div>
+    <div style="font-size:10px;color:#64748b">📱 ${inv.customer_mobile}</div>
+    ${inv.customer_address?`<div style="font-size:10px;color:#64748b">${inv.customer_address}</div>`:''}
+    ${inv.customer_gst?`<div style="font-family:monospace;font-size:10px;color:#3B82F6">GSTIN: ${inv.customer_gst}</div>`:''}
+  </div>
+  <div class="info-box vehicle-box">
+    <div class="info-box-label">Vehicle &amp; Driver</div>
+    ${inv.vehicle_number?`<div style="font-size:13px;font-weight:800;letter-spacing:1px">🚛 ${inv.vehicle_number}</div>`:'<div style="color:#64748b">No vehicle</div>'}
+    ${inv.driver_name?`<div style="font-size:10px;color:#64748b;margin-top:3px">👨‍✈️ ${inv.driver_name}</div>`:''}
+    <div style="font-size:10px;margin-top:4px">Status: <strong style="color:${statusColor}">${inv.status}</strong></div>
+  </div>
+</div>
+<table><thead><tr>
+  <th style="width:26px;text-align:center">#</th><th>Product</th>
+  <th class="center" style="width:60px">HSN</th><th class="center" style="width:50px">Unit</th>
+  <th class="center" style="width:40px">Qty</th><th class="right" style="width:70px">Rate</th>
+  <th class="right" style="width:75px">Amount</th><th class="center" style="width:44px">GST%</th>
+  <th class="right" style="width:70px">GST Amt</th><th class="right" style="width:78px">Total</th>
+</tr></thead><tbody>${rows}</tbody></table>
+<div class="bottom-section">
+  <div class="notes-col">
+    <div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Notes</div>
+    <div style="font-size:10.5px;color:#475569;line-height:1.6">${inv.notes||'No remarks.'}</div>
+    ${seller.gst?`<div style="margin-top:12px;font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Declaration</div><div style="font-size:10px;color:#475569">Seller GSTIN: <strong>${seller.gst}</strong> | State Code: <strong>${seller.stateCode||'—'}</strong></div>`:''}
+  </div>
+  <div class="totals-col">
+    <div class="totals-box">
+      <div class="t-row"><span class="t-lbl">Subtotal</span><span class="t-val">₹${inv.subtotal.toFixed(2)}</span></div>
+      <div class="t-row"><span class="t-lbl">CGST</span><span class="t-val" style="color:#22C55E">₹${(inv.gst_total/2).toFixed(2)}</span></div>
+      <div class="t-row"><span class="t-lbl">SGST</span><span class="t-val" style="color:#22C55E">₹${(inv.gst_total/2).toFixed(2)}</span></div>
+      <div class="t-row"><span class="t-lbl">Total GST</span><span class="t-val" style="color:#22C55E">₹${inv.gst_total.toFixed(2)}</span></div>
+      <div class="t-row grand"><span class="t-lbl">Grand Total</span><span class="t-val">₹${inv.grand_total.toFixed(2)}</span></div>
+      <div class="t-row paid-row"><span class="t-lbl">Paid</span><span class="t-val">₹${inv.paid_amount.toFixed(2)}</span></div>
+      <div class="t-row balance"><span class="t-lbl">Balance Due</span><span class="t-val">₹${inv.balance_amount.toFixed(2)}</span></div>
+    </div>
+  </div>
+</div>
+<div class="inv-footer">
+  <div style="font-size:9px;color:#94a3b8;line-height:1.8">
+    <div><strong style="color:#64748b">Sammy Kura Fleet Management</strong></div>
+    <div>Tamil Nadu, India</div>
+    ${seller.gst?`<div>Seller GSTIN: <strong>${seller.gst}</strong></div>`:''}
+    <div>Generated: ${genDt}</div>
+  </div>
+  <div style="text-align:center;font-size:10px;color:#94a3b8">★ Thank you for your business! ★</div>
+  <div>
+    <div class="sign-line"></div>
+    <div class="sign-label">Authorised Signatory</div>
+    <div style="font-size:8px;color:#94a3b8;text-align:center;margin-top:2px">Sammy Kura Fleet Management</div>
+  </div>
+</div>
+</div></body></html>`;
+}
+function printInvoice(){
+  const id=document.getElementById('invoiceId')?.value;
+  if(!id){toast('Please save the invoice first','error');return}
+  const inv=invoices.find(i=>i.id===parseInt(id));
+  if(!inv){toast('Invoice not found','error');return}
+  const win=window.open('','_blank');win.document.write(generatePrintHTML(inv));win.document.close();win.print();
+}
+function downloadPDF(){
+  const data=collectFormData();if(!validateForm(data))return;
+  const gt=data.items.reduce((s,it)=>{const a=it.quantity*it.rate;return s+a+a*(it.gst_percent/100)},0);
+  const st=data.items.reduce((s,it)=>s+it.quantity*it.rate,0);
+  const fakeInv={invoice_number:data.invoice_number,invoice_date:data.invoice_date,payment_method:data.payment_method,status:data.status||'Draft',
+    customer_name:data.customer_name,customer_mobile:data.customer_mobile,customer_address:data.customer_address,customer_gst:data.customer_gst,
+    vehicle_number:data.vehicle_number,driver_name:data.driver_name,notes:data.notes,items:data.items,
+    subtotal:st,gst_total:gt-st,grand_total:gt,paid_amount:data.paid_amount||0,balance_amount:gt-(data.paid_amount||0),
+    seller_gst_company:getSelectedGstCompany()||{}};
+  const win=window.open('','_blank');win.document.write(generatePrintHTML(fakeInv));win.document.close();
+  setTimeout(()=>{win.print()},600);
+  toast('PDF ready — use "Save as PDF" in print dialog 📄','success');
+}
+function shareInvoice(){
+  const num=document.getElementById('invoiceNumber')?.value;
+  const cust=document.getElementById('customerName')?.value;
+  const grand=document.getElementById('tGrand')?.textContent;
+  const text=`Invoice ${num}\nCustomer: ${cust}\nAmount: ${grand}\nSammy Kura Fleet Management`;
+  if(navigator.share)navigator.share({title:'Invoice '+num,text}).catch(()=>{})
+  else navigator.clipboard.writeText(text).then(()=>toast('Invoice details copied!','info'));
+}
+function resetForm(){
+  const form=document.getElementById('billingForm');if(form)form.reset();
+  const el=id=>document.getElementById(id);
+  if(el('invoiceId'))el('invoiceId').value='';
+  if(el('paidAmount'))el('paidAmount').value='';
+  if(el('itemsBody'))el('itemsBody').innerHTML='';
+  if(el('mobileItemsWrap'))el('mobileItemsWrap').innerHTML='';
+  rowCount=0;setTodayDate();generateInvoiceNumber();addItemRow();recalcTotals();
+  currentInvoiceId=null;toast('Form reset','info');
+}
+
+/* ── Invoice List ── */
+function loadInvoiceList(page=1){
+  currentPage=page;
+  const search=(document.getElementById('searchInvoice')?.value||'').toLowerCase();
+  const from=document.getElementById('filterFrom')?.value;
+  const to=document.getElementById('filterTo')?.value;
+  const status=document.getElementById('filterStatus')?.value;
+  let filtered=invoices.filter(inv=>{
+    if(search&&!inv.invoice_number.toLowerCase().includes(search)&&!inv.customer_name.toLowerCase().includes(search))return false;
+    if(from&&inv.invoice_date<from)return false;
+    if(to&&inv.invoice_date>to)return false;
+    if(status&&inv.status!==status)return false;
+    return true;
+  });
+  renderInvoiceList(filtered,page);
+}
+function renderInvoiceList(filtered,page=1){
+  const perPage=20,total=filtered.length,totalPages=Math.ceil(total/perPage)||1;
+  const sliced=filtered.slice((page-1)*perPage,page*perPage);
+  const tbody=document.getElementById('invoiceListBody');if(!tbody)return;
+  if(!sliced.length){
+    tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="es-icon">📄</div><h4>No Invoices Found</h4><p>Create your first invoice to get started.</p></div></td></tr>`;
+    document.getElementById('pageInfo').textContent='Showing 0 of 0';
+    document.getElementById('pageBtns').innerHTML='';return;
+  }
+  tbody.innerHTML=sliced.map(inv=>`
+    <tr>
+      <td><span class="inv-num" onclick="editInvoice(${inv.id})">${inv.invoice_number}</span></td>
+      <td>${formatDate(inv.invoice_date)}</td>
+      <td><div style="font-weight:600">${inv.customer_name}</div><div style="font-size:11px;color:var(--muted)">${inv.customer_mobile}</div></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${inv.vehicle_number||'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${inv.seller_gst_company?.company||'—'}<br><span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--orange)">${inv.seller_gst_company?.gst||''}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${inv.payment_method}</td>
+      <td class="money-cell">₹ ${fmtNum(inv.grand_total)}</td>
+      <td class="money-cell" style="color:${inv.balance_amount>0?'var(--danger)':'var(--success)'}">₹ ${fmtNum(inv.balance_amount)}</td>
+      <td><span class="status-${inv.status}">${inv.status}</span></td>
+      <td><div class="action-icons">
+        <button class="icon-btn" onclick="editInvoice(${inv.id})" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="icon-btn" onclick="printInvById(${inv.id})" title="Print"><i class="fa-solid fa-print"></i></button>
+        <button class="icon-btn del" onclick="promptDelete(${inv.id},'${inv.invoice_number}')" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+      </div></td>
+    </tr>`).join('');
+  const start=(page-1)*perPage+1,end=Math.min(page*perPage,total);
+  document.getElementById('pageInfo').textContent=`Showing ${start}–${end} of ${total}`;
+  let btns='';
+  if(page>1)btns+=`<button class="page-btn" onclick="loadInvoiceList(${page-1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+  for(let p=Math.max(1,page-2);p<=Math.min(totalPages,page+2);p++)btns+=`<button class="page-btn ${p===page?'active':''}" onclick="loadInvoiceList(${p})">${p}</button>`;
+  if(page<totalPages)btns+=`<button class="page-btn" onclick="loadInvoiceList(${page+1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+  document.getElementById('pageBtns').innerHTML=btns;
+}
+function printInvById(id){
+  const inv=invoices.find(i=>i.id===id);if(!inv){toast('Invoice not found','error');return}
+  const win=window.open('','_blank');win.document.write(generatePrintHTML(inv));win.document.close();win.print();
+}
+function editInvoice(id){
+  const inv=invoices.find(i=>i.id===id);if(!inv){toast('Invoice not found','error');return}
+  billingTab('create');
+  const el=id=>document.getElementById(id);
+  if(el('invoiceId'))el('invoiceId').value=inv.id;
+  if(el('invoiceNumber'))el('invoiceNumber').value=inv.invoice_number;
+  if(el('displayInvNum'))el('displayInvNum').textContent=inv.invoice_number;
+  if(el('invoiceDate'))el('invoiceDate').value=inv.invoice_date;
+  if(el('customerName'))el('customerName').value=inv.customer_name;
+  if(el('customerMobile'))el('customerMobile').value=inv.customer_mobile;
+  if(el('customerAddress'))el('customerAddress').value=inv.customer_address||'';
+  if(el('customerGst'))el('customerGst').value=inv.customer_gst||'';
+  if(el('vehicleNumber'))el('vehicleNumber').value=inv.vehicle_number||'';
+  if(el('driverName'))el('driverName').value=inv.driver_name||'';
+  if(el('paymentMethod'))el('paymentMethod').value=inv.payment_method;
+  if(el('invoiceStatus'))el('invoiceStatus').value=inv.status;
+  if(el('paidAmount'))el('paidAmount').value=inv.paid_amount;
+  if(el('invoiceNotes'))el('invoiceNotes').value=inv.notes||'';
+  if(el('itemsBody'))el('itemsBody').innerHTML='';
+  if(el('mobileItemsWrap'))el('mobileItemsWrap').innerHTML='';
+  rowCount=0;(inv.items||[]).forEach(it=>addItemRow(it));recalcTotals();currentInvoiceId=id;
+  toast('Invoice loaded for editing','info');
+}
+function promptDelete(id,num){
+  deleteTargetId=id;document.getElementById('deleteInvNum').textContent=num;openModal('deleteModal');
+}
+function confirmDelete(){
+  if(!deleteTargetId)return;
+  invoices=invoices.filter(i=>i.id!==deleteTargetId);
+  saveToStorage();toast('Invoice deleted','success');loadInvoiceList();loadStats();closeModal('deleteModal');deleteTargetId=null;
+}
+function loadStats(){
+  const total=invoices.length;
+  const paid=invoices.filter(i=>i.status==='Paid').length;
+  const unpaid=invoices.filter(i=>i.status==='Unpaid').length;
+  const now=new Date();
+  const thisMonth=invoices.filter(i=>{const d=new Date(i.invoice_date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});
+  const revenue=thisMonth.reduce((s,i)=>s+i.paid_amount,0);
+  const el=id=>document.getElementById(id);
+  if(el('statTotal'))el('statTotal').textContent=total;
+  if(el('statPaid'))el('statPaid').textContent=paid;
+  if(el('statUnpaid'))el('statUnpaid').textContent=unpaid;
+  if(el('statRevenue'))el('statRevenue').textContent=revenue>=100000?'₹'+Math.round(revenue/1000)+'K':'₹'+fmtNum(revenue);
+}
+function exportCSV(){
+  const headers=['Invoice #','Date','Customer','Mobile','Vehicle','Driver','Payment','Status','Grand Total','Paid','Balance'];
+  const rows=invoices.map(inv=>[inv.invoice_number,inv.invoice_date,inv.customer_name,inv.customer_mobile,inv.vehicle_number||'',inv.driver_name||'',inv.payment_method,inv.status,inv.grand_total.toFixed(2),inv.paid_amount.toFixed(2),inv.balance_amount.toFixed(2)]);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Invoices_SammyKura.csv';a.click();
+  toast('CSV exported! 📊','success');
+}
+function debounceSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadInvoiceList(),400)}
+function clearFilters(){
+  const el=id=>document.getElementById(id);
+  if(el('searchInvoice'))el('searchInvoice').value='';
+  if(el('filterStatus'))el('filterStatus').value='';
+  setTodayDate();loadInvoiceList();
+}
+
+/* ── Toast / Modal ── */
+function toast(msg,type='info'){
+  const icons={success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info'};
+  const el=document.createElement('div');
+  el.className=`toast toast-${type}`;
+  el.innerHTML=`<i class="fa-solid ${icons[type]||icons.info}"></i> ${msg}`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(()=>el.remove(),3100);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+
+/* ── DOMContentLoaded ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  updateThemeLabel();
+  const now=new Date();
+  document.getElementById('currentDate').textContent=now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  renderFleet(lorries);
+  document.querySelectorAll('.stat-card').forEach((c,i)=>{
+    c.style.opacity='0';c.style.transform='translateY(20px)';
+    setTimeout(()=>{c.style.transition='opacity .4s,transform .4s';c.style.opacity='1';c.style.transform='translateY(0)'},100+i*60);
+  });
+  setTodayDate();generateInvoiceNumber();addItemRow();loadStats();syncSellerGstDropdown();
+});
+</script>
+</body>
+</html>
